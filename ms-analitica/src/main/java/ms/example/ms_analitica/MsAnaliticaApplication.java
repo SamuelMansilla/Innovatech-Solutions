@@ -1,13 +1,13 @@
-package ms.example.ms_recursos;
+package ms.example.ms_analitica;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class MsRecursosApplication {
+public class MsAnaliticaApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(MsRecursosApplication.class, args);
+		SpringApplication.run(MsAnaliticaApplication.class, args);
 	}
 
 }
