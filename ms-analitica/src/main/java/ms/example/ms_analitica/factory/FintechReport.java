@@ -1,4 +1,4 @@
-package main.java.ms.example.ms_analitica.factory;
+package ms.example.ms_analitica.factory;
 
 public class FintechReport implements IReport {
     @Override

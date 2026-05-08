@@ -1,4 +1,4 @@
-package main.java.ms.example.ms_analitica.controller;
+package ms.example.ms_analitica.controller;
 
 import ms.example.ms_analitica.factory.AnalyticsFactory;
 import ms.example.ms_analitica.factory.IReport;

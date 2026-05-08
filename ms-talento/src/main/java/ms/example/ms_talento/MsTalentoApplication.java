@@ -1,4 +1,4 @@
-package ms.example.ms_recursos;
+package ms.example.ms_talento;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
