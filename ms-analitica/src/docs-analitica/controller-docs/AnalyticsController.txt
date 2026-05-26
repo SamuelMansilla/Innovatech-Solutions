@@ -1,0 +1,68 @@
+package ms.example.ms_analitica.controllers;
+import ms.example.ms_analitica.factory.AnalyticsFactory;
+import ms.example.ms_analitica.factory.IReport;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+/**
+* Controlador principal para el microservicio de Analítica.
+* Expone los endpoints para la generación de métricas.
+*/
+@RestController
+@RequestMapping("/api/v1/analytics")
+public class AnalyticsController {
+private final AnalyticsFactory analyticsFactory;
+/**
+* Inyección de dependencias por constructor.
+* @param analyticsFactory La fábrica de reportes gestionada por
+Spring.
+*/
+public AnalyticsController(AnalyticsFactory analyticsFactory) {
+this.analyticsFactory = analyticsFactory;
+}
+/**
+* Endpoint para obtener un reporte específico.
+* @param type Parámetro de consulta que indica el sector (ej.
+?type=fintech)
+* @return ResponseEntity con el JSON del reporte y el código HTTP
+correspondiente.
+*/
+@GetMapping("/report")
+public ResponseEntity getReport(@RequestParam(name = "type")
+String type) {
+try {
+// Se delega la creación del objeto a la fábrica
+IReport report = analyticsFactory.createReport(type);
+return ResponseEntity.ok(report.generate());
+} catch (IllegalArgumentException e) {
+// Manejo de errores controlados (Cliente pide un reporte
+
+que no existe)
+
+String errorJson = String.format("{\"status\": \"error\",
+
+\"message\": \"%s\"}", e.getMessage());
+
+return
+
+ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorJson);
+
+} catch (Exception e) {
+// Manejo de errores no controlados (Fallo interno del
+
+servidor)
+
+String serverErrorJson = "{\"status\": \"error\",
+\"message\": \"Error interno en el servidor de analítica\"}";
+
+return
+
+ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(serverErr
+orJson);
+}
+}
+}

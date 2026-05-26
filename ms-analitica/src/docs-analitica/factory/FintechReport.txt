@@ -1,0 +1,13 @@
+package ms.example.ms_analitica.factory;
+/**
+* Implementación concreta del reporte para el sector Fintech.
+*/
+public class FintechReport implements IReport {
+@Override
+public String generate() {
+return "{\"sector\": \"Fintech\", \"estado\": \"OK\",
+\"datos\": \"Análisis de riesgo y transacciones cifradas
+completado\"}";
+
+}
+}

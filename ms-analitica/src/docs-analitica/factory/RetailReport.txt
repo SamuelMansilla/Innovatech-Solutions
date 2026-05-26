@@ -1,0 +1,12 @@
+package ms.example.ms_analitica.factory;
+/**
+* Implementación concreta del reporte para el sector Retail.
+*/
+public class RetailReport implements IReport {
+@Override
+public String generate() {
+return "{\"sector\": \"Retail\", \"estado\": \"OK\",
+\"datos\": \"Métricas de volumen de ventas y rotación de inventario
+generadas\"}";
+}
+}

@@ -1,0 +1,42 @@
+package ms.example.ms_analitica.factory;
+import org.springframework.stereotype.Component;
+/**
+* Clase abstracta que define el método de creación (opcional, pero
+buena práctica).
+*/
+
+abstract class ReportFactory {
+public abstract IReport createReport(String type);
+}
+/**
+* Implementación concreta de la fábrica.
+* Utiliza @Component para que Spring la gestione e inyecte como
+dependencia.
+*/
+@Component
+public class AnalyticsFactory extends ReportFactory {
+/**
+* Crea y retorna una instancia del reporte solicitado.
+* @param type El sector del cliente (fintech, retail, gobierno).
+* @return IReport instanciado.
+* @throws IllegalArgumentException si el tipo no es soportado.
+*/
+@Override
+public IReport createReport(String type) {
+if (type == null || type.trim().isEmpty()) {
+throw new IllegalArgumentException("El tipo de reporte no
+
+puede estar vacío");
+
+}
+return switch (type.toLowerCase()) {
+case "fintech" -> new FintechReport();
+case "retail" -> new RetailReport();
+case "gobierno" -> new GovernmentReport();
+default -> throw new IllegalArgumentException("Tipo de
+
+reporte no soportado en Innovatech: " + type);
+
+};
+}
+}

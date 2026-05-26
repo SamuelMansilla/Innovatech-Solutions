@@ -1,0 +1,12 @@
+package ms.example.ms_analitica.factory;
+/**
+* Interfaz base para el patrón Factory Method.
+* Define el contrato que todos los tipos de reportes deben cumplir.
+*/
+public interface IReport {
+/**
+* Genera el contenido del reporte.
+* @return String con el reporte en formato JSON.
+*/
+String generate();
+}

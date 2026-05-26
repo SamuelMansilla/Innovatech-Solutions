@@ -1,0 +1,39 @@
+package ms.example.ms_analitica.config;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import
+org.springframework.security.config.annotation.web.builders.HttpSecuri
+ty;
+import org.springframework.security.web.SecurityFilterChain;
+/**
+* Clase de configuración de Spring Security.
+* Define las reglas de acceso a los endpoints del microservicio de
+analítica.
+*/
+@Configuration
+public class SecurityConfig {
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http)
+throws Exception {
+http
+// Se deshabilita CSRF ya que es una API REST sin manejo
+
+de sesiones web
+
+.csrf(csrf -> csrf.disable())
+.authorizeHttpRequests(auth -> auth
+// Se permite el acceso público a la ruta de
+
+generación de reportes.
+
+// La seguridad real (JWT) será manejada por el API
+
+Gateway (ms-BFF).
+
+.requestMatchers("/api/v1/analytics/**").permitAll()
+// Cualquier otra ruta requerirá autenticación
+.anyRequest().authenticated()
+);
+return http.build();
+}
+}

@@ -1,0 +1,12 @@
+package ms.example.ms_analitica.factory;
+/**
+* Implementación concreta del reporte para el sector Gobierno.
+*/
+public class GovernmentReport implements IReport {
+@Override
+public String generate() {
+return "{\"sector\": \"Gobierno\", \"estado\": \"OK\",
+\"datos\": \"Reporte de auditoría de fondos y cumplimiento
+regulatorio\"}";
+}
+}
