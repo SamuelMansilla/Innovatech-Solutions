@@ -1,0 +1,104 @@
+Fase 1 - Documentación de avances en ms-proyectos
+
+1. Objetivo general de Fase 1
+   - Establecer la base del microservicio de proyectos con una capa de dominio, acceso a datos y API REST.
+   - Preparar la aplicación para su posterior integración con otros microservicios y para soportar operaciones CRUD.
+
+2. Decisiones de arquitectura y enfoque
+   - Se eligió Spring Boot con Spring Data JPA para modelar la persistencia y gestionar el acceso a Oracle.
+   - Se definió un diseño de capas clásico: modelo (entity), repositorio, servicio y controlador.
+   - Se estableció una configuración inicial de base de datos en `application.properties` para trabajar con Oracle en local.
+   - Se anticipó el uso de Spring Cloud OpenFeign con `@EnableFeignClients`, dejando la aplicación lista para integrarse con otros servicios.
+
+3. Clase `Proyecto` (`model/Proyecto.java`)
+   - Se implementó como una entidad JPA anotada con `@Entity` y `@Table(name = "PROYECTOS")`.
+   - Campos definidos:
+     * `id` como `Long` con `@Id`, `@GeneratedValue` y `@SequenceGenerator` para Oracle.
+     * `nombre`, `descripcion`, `estado`, `fechaInicio`, `fechaFin`, `fechaCreacion`, `fechaActualizacion`.
+   - Justificación:
+     * El uso de `Long` para `id` facilita la autogeneración y evita problemas con la lógica de negocio.
+     * Campos de fechas con `LocalDate` permiten trabajar con fechas sin zona horaria en el dominio de proyectos.
+     * `fechaCreacion` y `fechaActualizacion` radican en la entidad para registrar trazabilidad básica.
+   - Se incluyeron getters y setters completos y un constructor vacío requerido por JPA.
+
+4. Clase `ProyectoRepository` (`repository/ProyectoRepository.java`)
+   - Se implementó como interfaz que extiende `JpaRepository<Proyecto, Long>`.
+   - Métodos añadidos:
+     * `findByNombreContainingIgnoreCase(String nombre)` para búsqueda por nombre con coincidencia parcial.
+     * `findByEstado(String estado)` para filtrar por estado de proyecto.
+     * `existsByNombreIgnoreCase(String nombre)` para validar duplicados de nombre.
+   - Justificación:
+     * Aprovecha la potencia de Spring Data JPA para evitar código boilerplate.
+     * Los métodos personalizados permiten búsquedas necesarias en la API sin implementar consultas manuales.
+
+5. Clase `ProyectoService` (`service/ProyectoService.java`)
+   - Se creó como service con `@Service` e inyección de `ProyectoRepository` por constructor.
+   - Funcionalidades implementadas:
+     * `obtenerTodos()`
+     * `obtenerPorId(Long id)`
+     * `buscarPorNombre(String nombre)`
+     * `obtenerPorEstado(String estado)`
+     * `crear(Proyecto proyecto)`
+     * `actualizar(Long id, Proyecto proyectoActualizado)`
+     * `eliminar(Long id)`
+   - Validaciones internas:
+     * Nombre obligatorio y no vacío.
+     * Estado obligatorio y no vacío.
+     * Longitud máxima de nombre 100.
+     * Duplicado de nombre prohibido en la creación.
+   - Justificación:
+     * Separación de responsabilidades: la lógica de negocio queda en el service y el repositorio queda encargado sólo del acceso a datos.
+     * Se asegura consistencia antes de persistir.
+     * Los métodos CRUD cubren el comportamiento básico requerido para un microservicio de proyectos.
+
+6. Clase `ProyectoController` (`controller/ProyectoController.java`)
+   - Se creó como controlador REST con `@RestController` y `@RequestMapping("/api/v1/proyectos")`.
+   - Endpoints expuestos:
+     * `GET /api/v1/proyectos` -> `obtenerTodos()`
+     * `GET /api/v1/proyectos/{id}` -> `obtenerPorId(id)`
+     * `GET /api/v1/proyectos/buscar?nombre=` -> `buscarPorNombre(nombre)`
+     * `GET /api/v1/proyectos/estado/{estado}` -> `obtenerPorEstado(estado)`
+     * `POST /api/v1/proyectos` -> `crear(proyecto)`
+     * `PUT /api/v1/proyectos/{id}` -> `actualizar(id, proyectoActualizado)`
+     * `DELETE /api/v1/proyectos/{id}` -> `eliminar(id)`
+   - Manejo de errores y respuestas:
+     * Retorna `404` cuando un recurso no existe.
+     * Retorna `400` para errores de validación.
+     * Retorna `500` para errores internos.
+     * Estructura JSON sencilla para mensajes de error.
+   - Justificación:
+     * Provee una API REST limpia y consistente para un cliente o BFF.
+     * Se separa el control de flujo HTTP de la lógica de negocio.
+
+7. Configuración de la aplicación
+   - Archivo `src/main/resources/application.properties`:
+     * `server.port=8082`
+     * Configuración de conexión a Oracle: URL, usuario, contraseña y driver.
+     * JPA/Hibernate en modo `update` para desarrollo inicial.
+     * Logging configurado para el paquete del servicio y SQL.
+   - Justificación:
+     * Permite ejecutar el microservicio de manera local.
+     * Facilita el desarrollo inicial sin necesidad de migraciones automáticas complejas.
+
+8. Dependencias y build
+   - `pom.xml` actualizado con:
+     * `spring-boot-starter-data-jpa`
+     * `spring-boot-starter-webmvc`
+     * `com.oracle.database.jdbc:ojdbc11`
+     * `spring-cloud-starter-openfeign`
+     * Dependencias de prueba: `spring-boot-starter-data-jpa-test`, `spring-boot-starter-webmvc-test`
+     * `dependencyManagement` para `spring-cloud-dependencies` con versión `2025.1.1`
+   - Justificación:
+     * JPA y WebMVC son necesarios para persistencia y API REST.
+     * OpenFeign queda habilitado para futuras integraciones con ms-BFF o servicios externos.
+
+9. Clase principal
+   - `MsProyectosApplication.java` ahora incluye `@EnableFeignClients`.
+   - Justificación:
+     * Aunque en Fase 1 no se usa OpenFeign, la aplicación queda preparada para consumir otros microservicios en fases posteriores.
+
+10. Conclusión y estado actual
+    - La Fase 1 quedó completada con la estructura mínima válida para CRUD de proyectos.
+    - El microservicio está listo para la siguiente fase de pruebas y migraciones.
+    - No se añadieron aún migraciones explícitas (Liquibase/Flyway), ni pruebas unitarias/integración.
+    - Siguiente paso recomendado: crear migraciones de esquema, pruebas de service/controller y validar la conexión real a Oracle.
