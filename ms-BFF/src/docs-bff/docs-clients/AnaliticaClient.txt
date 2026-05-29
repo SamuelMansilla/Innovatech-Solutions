@@ -1,0 +1,19 @@
+========================================================================
+DOCUMENTACIÓN DE CLASE: AnaliticaClient
+UBICACIÓN: ms.example.ms_BFF.clients
+========================================================================
+
+DESCRIPCIÓN:
+Esta interfaz actúa como un cliente HTTP declarativo utilizando Spring Cloud OpenFeign.
+Su propósito es abstraer la comunicación entre el API Gateway (ms-BFF) y el microservicio
+interno de analítica (ms-analitica), evitando el uso de RestTemplate o WebClient directamente.
+
+CONFIGURACIÓN:
+- @FeignClient(name = "analiticaService", url = "http://localhost:8083/api/v1/analytics")
+- Se enlaza directamente con el puerto 8083 donde reside el servicio de destino.
+- El nombre "analiticaService" es crucial ya que es la llave que Resilience4j utiliza 
+  para aplicar las reglas del Circuit Breaker definidas en el application.properties.
+
+MÉTODOS:
+- getReport(String type): Es un método "espejo" del endpoint GET /report en ms-analitica. 
+  Recibe el parámetro 'type' (fintech, retail, etc.) y devuelve un JSON en formato String.
