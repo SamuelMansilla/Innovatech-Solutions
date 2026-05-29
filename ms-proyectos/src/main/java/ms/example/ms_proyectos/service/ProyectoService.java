@@ -1,6 +1,7 @@
 package ms.example.ms_proyectos.service;
 
 import ms.example.ms_proyectos.model.Proyecto;
+import ms.example.ms_proyectos.model.EstadoProyecto;
 import ms.example.ms_proyectos.repository.ProyectoRepository;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
@@ -48,7 +49,7 @@ public class ProyectoService {
      * @param estado el estado a filtrar
      * @return lista de proyectos con ese estado
      */
-    public List<Proyecto> obtenerPorEstado(String estado) {
+    public List<Proyecto> obtenerPorEstado(EstadoProyecto estado) {
         return proyectoRepository.findByEstado(estado);
     }
 
@@ -114,7 +115,7 @@ public class ProyectoService {
         if (proyecto.getNombre() == null || proyecto.getNombre().isBlank()) {
             throw new IllegalArgumentException("El nombre del proyecto es obligatorio");
         }
-        if (proyecto.getEstado() == null || proyecto.getEstado().isBlank()) {
+        if (proyecto.getEstado() == null) {
             throw new IllegalArgumentException("El estado del proyecto es obligatorio");
         }
         if (proyecto.getNombre().length() > 100) {

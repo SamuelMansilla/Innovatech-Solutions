@@ -1,6 +1,7 @@
 package ms.example.ms_proyectos.repository;
 
 import ms.example.ms_proyectos.model.Proyecto;
+import ms.example.ms_proyectos.model.EstadoProyecto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
@@ -20,7 +21,7 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
      * @param estado el estado del proyecto (ej: ACTIVO, COMPLETADO, CANCELADO)
      * @return lista de proyectos con ese estado
      */
-    List<Proyecto> findByEstado(String estado);
+    List<Proyecto> findByEstado(EstadoProyecto estado);
 
     /**
      * Verifica si existe un proyecto con el nombre especificado

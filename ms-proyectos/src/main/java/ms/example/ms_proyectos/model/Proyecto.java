@@ -2,7 +2,6 @@ package ms.example.ms_proyectos.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
-
 @Entity
 @Table(name = "PROYECTOS")
 public class Proyecto {
@@ -19,8 +18,9 @@ public class Proyecto {
     @Column(name = "DESCRIPCION", length = 500)
     private String descripcion;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "ESTADO", nullable = false, length = 20)
-    private String estado;
+    private EstadoProyecto estado;
 
     @Column(name = "FECHA_INICIO")
     private LocalDate fechaInicio;
@@ -34,21 +34,28 @@ public class Proyecto {
     @Column(name = "FECHA_ACTUALIZACION")
     private LocalDate fechaActualizacion;
 
-    // Constructor vacío (requerido por JPA)
     public Proyecto() {
     }
 
-    // Constructor con parámetros principales
-    public Proyecto(String nombre, String descripcion, String estado, LocalDate fechaInicio, LocalDate fechaFin) {
+    public Proyecto(String nombre, String descripcion, EstadoProyecto estado, LocalDate fechaInicio, LocalDate fechaFin) {
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.estado = estado;
         this.fechaInicio = fechaInicio;
         this.fechaFin = fechaFin;
-        this.fechaCreacion = LocalDate.now();
     }
 
-    // Getters y Setters
+    @PrePersist
+    protected void onCreate() {
+        this.fechaCreacion = LocalDate.now();
+        this.fechaActualizacion = LocalDate.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.fechaActualizacion = LocalDate.now();
+    }
+
     public Long getId() {
         return id;
     }
@@ -73,11 +80,11 @@ public class Proyecto {
         this.descripcion = descripcion;
     }
 
-    public String getEstado() {
+    public EstadoProyecto getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoProyecto estado) {
         this.estado = estado;
     }
 
@@ -118,7 +125,7 @@ public class Proyecto {
         return "Proyecto{" +
                 "id=" + id +
                 ", nombre='" + nombre + '\'' +
-                ", estado='" + estado + '\'' +
+                ", estado='" + (estado != null ? estado.name() : null) + '\'' +
                 ", fechaInicio=" + fechaInicio +
                 ", fechaFin=" + fechaFin +
                 '}';

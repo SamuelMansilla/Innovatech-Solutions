@@ -1,0 +1,41 @@
+Objetivo: Robustecer ms-proyectos para producción con validación, tests, convenciones de estado, y prepararlo para integración y despliegue.
+
+Prioridad Alta (Sprint 1)
+- [DONE] Refactor: entidad Proyecto -> usar enum EstadoProyecto y agregar auditoría (fechaCreacion, fechaActualizacion).
+- [DONE] Añadir DTOs y validaciones: ProyectoRequest, ProyectoResponse (@NotBlank, @Size, @NotNull).
+- [DONE] Añadir ProyectoMapper (toEntity, toResponse, updateEntityFromRequest).
+- [DONE] Añadir dependencia de validación (spring-boot-starter-validation) en pom.xml.
+- [DONE] Pruebas unitarias: ProyectoServiceTest (crear, actualizar, eliminar, búsquedas).
+- [DONE] Pruebas de integración: ProyectoControllerIntegrationTest (endpoints CRUD y búsquedas).
+- [DONE] Ajustes pom.xml: añadir spring-boot-starter-test, jackson-databind, jackson-datatype-jsr310, mockito.
+
+- [TODO] Implementar @ControllerAdvice para manejo uniforme de errores y validación.
+- [TODO] Ejecutar mvn -q test localmente / generar mvnw si se desea reproducibilidad.
+- [TODO] Añadir validaciones de negocio adicionales (fechas coherentes: fechaInicio <= fechaFin, límites auditoría).
+
+Prioridad Media (Sprint 2)
+- [TODO] Paginación y filtros en GET /api/v1/proyectos.
+- [TODO] Endpoint de búsqueda avanzada (nombre parcial, rango de fechas, estado).
+- [TODO] Documentación OpenAPI/Swagger (springdoc-openapi).
+- [TODO] Pruebas de integración end-to-end con base de datos en memoria (H2) o contenedor Oracle XE.
+
+Prioridad Baja (Sprint 3)
+- [TODO] Seguridad: JWT para endpoints protegidos.
+- [TODO] Integración Feign client hacia ms-analitica / BFF cuando estén disponibles.
+- [TODO] Observabilidad: Actuator, métricas y trazas (Micrometer, OpenTelemetry).
+- [TODO] Dockerfile, docker-compose (db y app) y pipeline CI (GitHub Actions).
+- [TODO] Migraciones DB (Flyway o Liquibase) — decidir herramienta y añadir scripts.
+- [TODO] Runbook y datos de ejemplo para despliegue local.
+
+Notas y decisiones por confirmar
+- Mantener Oracle en local o usar H2/Postgres para testing CI (preferencia: evitar cambios de motor por ahora; usar H2 para tests y Oracle en integración).
+- Herramienta migraciones: Flyway recomendado por simplicidad.
+
+Estado actual (resumen)
+- Completado: refactor de modelo, DTOs, mappers, validaciones básicas y pruebas unitarias/integración; dependencias de test y Jackson agregadas.
+- Pendiente inmediato: ControllerAdvice, ejecución de tests en su entorno (mvn/mvnw), paginación y OpenAPI.
+
+Siguientes pasos recomendados (elige uno)
+1) Implementar @ControllerAdvice para errores.
+2) Añadir paginación y filtros.
+3) Preparar Flyway + scripts iniciales.
