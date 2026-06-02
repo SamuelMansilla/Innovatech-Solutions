@@ -1,166 +1,132 @@
 package ms.example.ms_proyectos.controller;
 
+import jakarta.validation.Valid;
+import ms.example.ms_proyectos.dto.ProyectoRequest;
+import ms.example.ms_proyectos.dto.ProyectoResponse;
+import ms.example.ms_proyectos.mapper.ProyectoMapper;
+import ms.example.ms_proyectos.model.EstadoProyecto;
 import ms.example.ms_proyectos.model.Proyecto;
 import ms.example.ms_proyectos.service.ProyectoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
-import java.util.Optional;
-import java.util.HashMap;
-import java.util.Map;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Controlador REST para gestionar proyectos.
+ * Endpoints para operaciones CRUD y búsquedas.
+ * El manejo de excepciones está centralizado en GlobalExceptionHandler.
+ */
 @RestController
 @RequestMapping("/api/v1/proyectos")
 public class ProyectoController {
 
     private final ProyectoService proyectoService;
 
-    // Inyección de dependencias por constructor
     public ProyectoController(ProyectoService proyectoService) {
         this.proyectoService = proyectoService;
     }
 
     /**
-     * Obtiene todos los proyectos
      * GET /api/v1/proyectos
-     * @return lista de todos los proyectos con estado 200
+     * Obtiene todos los proyectos.
      */
     @GetMapping
-    public ResponseEntity<List<Proyecto>> obtenerTodos() {
-        try {
-            List<Proyecto> proyectos = proyectoService.obtenerTodos();
-            return ResponseEntity.ok(proyectos);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<List<ProyectoResponse>> obtenerTodos() {
+        List<Proyecto> proyectos = proyectoService.obtenerTodos();
+        List<ProyectoResponse> respuesta = proyectos.stream()
+                .map(ProyectoMapper::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(respuesta);
     }
 
     /**
-     * Obtiene un proyecto por su ID
      * GET /api/v1/proyectos/{id}
-     * @param id el ID del proyecto
-     * @return el proyecto solicitado o 404 si no existe
+     * Obtiene un proyecto por ID.
+     * @throws GlobalExceptionHandler.ResourceNotFoundException si el proyecto no existe
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
-        try {
-            Optional<Proyecto> proyecto = proyectoService.obtenerPorId(id);
-            if (proyecto.isPresent()) {
-                return ResponseEntity.ok(proyecto.get());
-            } else {
-                Map<String, String> error = new HashMap<>();
-                error.put("estado", "error");
-                error.put("mensaje", "Proyecto no encontrado con ID: " + id);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<ProyectoResponse> obtenerPorId(@PathVariable Long id) {
+        return proyectoService.obtenerPorId(id)
+                .map(ProyectoMapper::toResponse)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new GlobalExceptionHandler.ResourceNotFoundException(
+                        "Proyecto no encontrado con ID: " + id));
     }
 
     /**
-     * Busca proyectos por nombre
-     * GET /api/v1/proyectos/buscar?nombre=Proyecto
-     * @param nombre el nombre a buscar
-     * @return lista de proyectos que coinciden
+     * GET /api/v1/proyectos/buscar?nombre=xxx
+     * Busca proyectos por nombre (búsqueda parcial, insensible a mayúsculas).
      */
     @GetMapping("/buscar")
-    public ResponseEntity<List<Proyecto>> buscarPorNombre(@RequestParam String nombre) {
-        try {
-            List<Proyecto> proyectos = proyectoService.buscarPorNombre(nombre);
-            return ResponseEntity.ok(proyectos);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<List<ProyectoResponse>> buscarPorNombre(@RequestParam String nombre) {
+        List<Proyecto> proyectos = proyectoService.buscarPorNombre(nombre);
+        List<ProyectoResponse> respuesta = proyectos.stream()
+                .map(ProyectoMapper::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(respuesta);
     }
 
     /**
-     * Obtiene proyectos por estado
      * GET /api/v1/proyectos/estado/{estado}
-     * @param estado el estado a filtrar
-     * @return lista de proyectos con ese estado
+     * Obtiene proyectos filtrados por estado.
      */
     @GetMapping("/estado/{estado}")
-    public ResponseEntity<List<Proyecto>> obtenerPorEstado(@PathVariable String estado) {
-        try {
-            List<Proyecto> proyectos = proyectoService.obtenerPorEstado(estado);
-            return ResponseEntity.ok(proyectos);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<List<ProyectoResponse>> obtenerPorEstado(@PathVariable EstadoProyecto estado) {
+        List<Proyecto> proyectos = proyectoService.obtenerPorEstado(estado);
+        List<ProyectoResponse> respuesta = proyectos.stream()
+                .map(ProyectoMapper::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(respuesta);
     }
 
     /**
-     * Crea un nuevo proyecto
      * POST /api/v1/proyectos
-     * @param proyecto el proyecto a crear
-     * @return el proyecto creado con estado 201
+     * Crea un nuevo proyecto.
+     * @throws IllegalArgumentException si los datos son inválidos o el nombre está duplicado
      */
     @PostMapping
-    public ResponseEntity<?> crear(@RequestBody Proyecto proyecto) {
-        try {
-            Proyecto proyectoCreado = proyectoService.crear(proyecto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(proyectoCreado);
-        } catch (IllegalArgumentException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("estado", "error");
-            error.put("mensaje", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("estado", "error");
-            error.put("mensaje", "Error al crear el proyecto");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
+    public ResponseEntity<ProyectoResponse> crear(@Valid @RequestBody ProyectoRequest proyectoRequest) {
+        Proyecto entidad = ProyectoMapper.toEntity(proyectoRequest);
+        Proyecto creado = proyectoService.crear(entidad);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ProyectoMapper.toResponse(creado));
     }
 
     /**
-     * Actualiza un proyecto existente
      * PUT /api/v1/proyectos/{id}
-     * @param id el ID del proyecto a actualizar
-     * @param proyectoActualizado los datos actualizados
-     * @return el proyecto actualizado o 404 si no existe
+     * Actualiza un proyecto existente.
+     * @throws GlobalExceptionHandler.ResourceNotFoundException si el proyecto no existe
+     * @throws IllegalArgumentException si los datos son inválidos
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody Proyecto proyectoActualizado) {
-        try {
-            Proyecto proyecto = proyectoService.actualizar(id, proyectoActualizado);
-            return ResponseEntity.ok(proyecto);
-        } catch (IllegalArgumentException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("estado", "error");
-            error.put("mensaje", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("estado", "error");
-            error.put("mensaje", "Error al actualizar el proyecto");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
+    public ResponseEntity<ProyectoResponse> actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody ProyectoRequest proyectoRequest) {
+
+        Proyecto proyectoExistente = proyectoService.obtenerPorId(id)
+                .orElseThrow(() -> new GlobalExceptionHandler.ResourceNotFoundException(
+                        "Proyecto no encontrado con ID: " + id));
+
+        ProyectoMapper.updateEntityFromRequest(proyectoRequest, proyectoExistente);
+        Proyecto actualizado = proyectoService.actualizar(id, proyectoExistente);
+
+        return ResponseEntity.ok(ProyectoMapper.toResponse(actualizado));
     }
 
     /**
-     * Elimina un proyecto
      * DELETE /api/v1/proyectos/{id}
-     * @param id el ID del proyecto a eliminar
-     * @return respuesta vacía con estado 204 o 404 si no existe
+     * Elimina un proyecto.
+     * @throws GlobalExceptionHandler.ResourceNotFoundException si el proyecto no existe
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminar(@PathVariable Long id) {
-        try {
-            proyectoService.eliminar(id);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("estado", "error");
-            error.put("mensaje", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("estado", "error");
-            error.put("mensaje", "Error al eliminar el proyecto");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        if (!proyectoService.obtenerPorId(id).isPresent()) {
+            throw new GlobalExceptionHandler.ResourceNotFoundException(
+                    "Proyecto no encontrado con ID: " + id);
         }
+        proyectoService.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 }
