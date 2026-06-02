@@ -121,5 +121,13 @@ public class ProyectoService {
         if (proyecto.getNombre().length() > 100) {
             throw new IllegalArgumentException("El nombre no puede exceder 100 caracteres");
         }
+        validarFechas(proyecto);
+    }
+
+    private void validarFechas(Proyecto proyecto) {
+        if (proyecto.getFechaInicio() != null && proyecto.getFechaFin() != null
+                && proyecto.getFechaInicio().isAfter(proyecto.getFechaFin())) {
+            throw new IllegalArgumentException("La fecha de inicio no puede ser posterior a la fecha de fin");
+        }
     }
 }

@@ -179,6 +179,24 @@ public class ProyectoServiceTest {
         verify(proyectoRepository, never()).save(any(Proyecto.class));
     }
 
+    // 9. PRUEBA: Crear proyecto con fecha de inicio posterior a fecha de fin
+    @Test
+    public void crear_ConFechaInicioPosteriorAFechaFin_LanzaIllegalArgumentException() {
+        // Arrange
+        Proyecto proyecto = new Proyecto();
+        proyecto.setNombre("Proyecto Nuevo");
+        proyecto.setEstado(EstadoProyecto.ACTIVO);
+        proyecto.setFechaInicio(LocalDate.of(2025, 12, 31));
+        proyecto.setFechaFin(LocalDate.of(2025, 1, 1));
+        // Act & Assert
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            proyectoService.crear(proyecto);
+        });
+
+        assertEquals("La fecha de inicio no puede ser posterior a la fecha de fin", exception.getMessage());
+        verify(proyectoRepository, never()).save(any(Proyecto.class));
+    }
+
     // 9. PRUEBA: Crear proyecto sin estado
     @Test
     public void crear_SinEstado_LanzaIllegalArgumentException() {
@@ -223,6 +241,30 @@ public class ProyectoServiceTest {
         assertEquals(EstadoProyecto.PAUSADO, actualizado.getEstado());
         assertNotNull(actualizado.getFechaActualizacion());
         verify(proyectoRepository, times(1)).save(any(Proyecto.class));
+    }
+
+    // 11. PRUEBA: Actualizar proyecto con fecha de inicio posterior a fecha de fin
+    @Test
+    public void actualizar_ConFechaInicioPosteriorAFechaFin_LanzaIllegalArgumentException() {
+        // Arrange
+        Proyecto proyectoExistente = new Proyecto();
+        proyectoExistente.setId(1L);
+        proyectoExistente.setNombre("Proyecto Alpha");
+        proyectoExistente.setEstado(EstadoProyecto.ACTIVO);
+        proyectoExistente.setFechaCreacion(LocalDate.of(2024, 1, 1));
+
+        Proyecto cambios = new Proyecto();
+        cambios.setNombre("Proyecto Beta");
+        cambios.setEstado(EstadoProyecto.ACTIVO);
+        cambios.setFechaInicio(LocalDate.of(2025, 12, 31));
+        cambios.setFechaFin(LocalDate.of(2025, 1, 1));
+        // Act & Assert
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            proyectoService.actualizar(1L, cambios);
+        });
+
+        assertEquals("La fecha de inicio no puede ser posterior a la fecha de fin", exception.getMessage());
+        verify(proyectoRepository, never()).save(any(Proyecto.class));
     }
 
     // 11. PRUEBA: Actualizar proyecto inexistente

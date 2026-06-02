@@ -34,7 +34,7 @@ Prioridad Alta (Sprint 1)
     Sprint 1 completado:
 
 
-- [TODO] Añadir validaciones de negocio adicionales (fechas coherentes: fechaInicio <= fechaFin, límites auditoría).
+- [DONE] Añadir validaciones de negocio adicionales (fechas coherentes: fechaInicio <= fechaFin).
 
 Prioridad Media (Sprint 2)
 - [TODO] Paginación y filtros en GET /api/v1/proyectos.
@@ -60,7 +60,9 @@ Estado actual (resumen) - SPRINT 1 COMPLETADO
 - Controlador: Limpio y conciso, sin lógica de manejo de errores (delegado a GlobalExceptionHandler).
 - Pendiente inmediato: validaciones de negocio adicionales (Sprint 1 final) o paginación (Sprint 2).
 
+Próximo objetivo: Sprint 2
 Siguientes pasos recomendados
-1) Añadir validaciones de negocio adicionales: fechaInicio <= fechaFin, límites de auditoría (Sprint 1 final).
-2) Añadir paginación y filtros avanzados (Sprint 2 inicio).
+1) Añadir paginación y filtros avanzados (Sprint 2 inicio).
+2) Preparar OpenAPI/Swagger y documentación de API.
+3) Consolidar pruebas de búsqueda avanzada y filtros.
 3) Preparar Flyway + scripts iniciales (Sprint 3).
