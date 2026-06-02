@@ -34,7 +34,18 @@ Prioridad Alta (Sprint 1)
     Sprint 1 completado:
 
 
-- [DONE] Añadir validaciones de negocio adicionales (fechas coherentes: fechaInicio <= fechaFin).
+-- [DONE] Añadir validaciones de negocio adicionales (fechas coherentes: fechaInicio <= fechaFin).
+
+- [DONE] Paginación y filtros básicos implementados en `GET /api/v1/proyectos`.
+  * Parámetros soportados: `nombre`, `estado`, `fechaInicioDesde`, `fechaFinHasta`, `page`, `size`, `sort`.
+  * Respuesta incluye cabeceras con metadata de paginación: `X-Total-Count`, `X-Total-Pages`, `X-Page-Number`, `X-Page-Size`.
+  * Cuando procede, se incluye la cabecera `Link` con relaciones `prev`/`next`.
+  * Ejemplo de cabeceras devueltas:
+    - `X-Total-Count: 125`
+    - `X-Total-Pages: 13`
+    - `X-Page-Number: 0`
+    - `X-Page-Size: 10`
+    - `Link: </api/v1/proyectos?page=1&size=10&sort=id,asc>; rel="next"`
 
 Prioridad Media (Sprint 2)
 - [TODO] Paginación y filtros en GET /api/v1/proyectos.

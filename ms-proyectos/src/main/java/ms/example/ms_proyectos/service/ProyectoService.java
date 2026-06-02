@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class ProyectoService {
@@ -42,6 +44,17 @@ public class ProyectoService {
      */
     public List<Proyecto> buscarPorNombre(String nombre) {
         return proyectoRepository.findByNombreContainingIgnoreCase(nombre);
+    }
+
+    /**
+     * Obtiene proyectos con filtros opcionales y paginación.
+     */
+    public Page<Proyecto> obtenerConFiltros(String nombre,
+                                           EstadoProyecto estado,
+                                           LocalDate fechaInicioDesde,
+                                           LocalDate fechaFinHasta,
+                                           Pageable pageable) {
+        return proyectoRepository.search(nombre, estado, fechaInicioDesde, fechaFinHasta, pageable);
     }
 
     /**
