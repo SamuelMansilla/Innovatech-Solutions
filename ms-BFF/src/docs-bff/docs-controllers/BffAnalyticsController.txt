@@ -1,0 +1,27 @@
+========================================================================
+DOCUMENTACIÓN DE CLASE: BffAnalyticsController
+UBICACIÓN: ms.example.ms_BFF.controllers
+========================================================================
+
+DESCRIPCIÓN:
+Controlador REST principal del API Gateway encargado de interceptar las peticiones del
+frontend (React) dirigidas al módulo de analítica. Aplica el patrón de diseño Circuit Breaker
+para garantizar la resiliencia y tolerancia a fallos del sistema distribuido.
+
+DEPENDENCIAS:
+- AnaliticaClient: Inyectado por constructor para realizar la llamada al microservicio real.
+
+ENDPOINTS:
+1. GET /api/v1/bff/analytics/report
+   - Descripción: Orquesta la solicitud de generación de reportes.
+   - Parámetros: type (String) - Sector del reporte solicitado.
+   
+RESILIENCIA (Resilience4j & AOP):
+- El método principal está anotado con @CircuitBreaker(name = "analiticaService", fallbackMethod = "reportFallback").
+- Si ms-analitica presenta latencia (timeout > 2s) o está caído, la Programación Orientada 
+  a Aspectos (AOP) de Spring intercepta la excepción y desvía el flujo de ejecución hacia el Fallback.
+
+MÉTODO PLAN B (Fallback):
+- reportFallback(String type, Throwable ex): Genera una respuesta controlada con código HTTP 503 (Service Unavailable).
+  Evita fallos en cascada y entrega al cliente un mensaje en formato JSON indicando que el servicio
+  está temporalmente degradado, manteniendo el Gateway en pie.
