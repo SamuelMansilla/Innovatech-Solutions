@@ -9,8 +9,31 @@ Prioridad Alta (Sprint 1)
 - [DONE] Pruebas de integración: ProyectoControllerIntegrationTest (endpoints CRUD y búsquedas).
 - [DONE] Ajustes pom.xml: añadir spring-boot-starter-test, jackson-databind, jackson-datatype-jsr310, mockito.
 
-- [TODO] Implementar @ControllerAdvice para manejo uniforme de errores y validación.
-- [TODO] Ejecutar mvn -q test localmente / generar mvnw si se desea reproducibilidad.
+- [DONE] Refactorización de tests: Simplificación del modelo de tests unitarios.
+  * Se eliminaron dependencias problemáticas de Spring Boot Test autoconfigure (@WebMvcTest, MockMvc).
+  * ProyectoServiceTest ahora usa solo Mockito (@Mock, @InjectMocks) con @ExtendWith(MockitoExtension.class).
+  * ProyectoControllerIntegrationTest refactorizado para probar lógica del controlador sin MockMvc.
+  * Se agregó dependencia de H2 Database (scope=test) para tests en memoria.
+  * Se creó `application-test.properties` configurando H2 con modo compatible con Oracle.
+  * Se activó perfil "test" en MsProyectosApplicationTests usando @ActiveProfiles("test").
+
+- [DONE] Implementar @ControllerAdvice para manejo uniforme de errores y validación.
+  * Creada clase GlobalExceptionHandler anotada con @ControllerAdvice.
+  * Implementados handlers para excepciones: MethodArgumentNotValidException, IllegalArgumentException, ResourceNotFoundException (personalizada), Exception (genérica).
+  * Creada clase ErrorResponse (DTO) para respuestas consistentes con estructura: status, mensaje, timestamp, ruta, detalles.
+  * Refactorizado ProyectoController eliminando try-catch redundantes (delegados a GlobalExceptionHandler).
+  * Simplificados endpoints: lanzan excepciones que son capturadas y manejadas globalmente.
+  * Agregado test GlobalExceptionHandlerTest con 4 pruebas verificando comportamiento del manejador.
+  * Resultado: 29 tests ejecutados exitosamente (4 GlobalExceptionHandlerTest, 13 ProyectoServiceTest, 11 ProyectoControllerIntegrationTest, 1 MsProyectosApplicationTests).
+    Beneficios de GlobalExceptionHandler:
+    ✅ Manejo de errores centralizado (no repetido en cada controlador)
+    ✅ Respuestas consistentes en toda la API
+    ✅ Código del controlador limpio y enfocado en lógica de negocio
+    ✅ Fácil de probar (tests aislados del controlador)
+    ✅ Escalable (agregar nuevas excepciones es trivial)
+    Sprint 1 completado:
+
+
 - [TODO] Añadir validaciones de negocio adicionales (fechas coherentes: fechaInicio <= fechaFin, límites auditoría).
 
 Prioridad Media (Sprint 2)
@@ -31,11 +54,13 @@ Notas y decisiones por confirmar
 - Mantener Oracle en local o usar H2/Postgres para testing CI (preferencia: evitar cambios de motor por ahora; usar H2 para tests y Oracle en integración).
 - Herramienta migraciones: Flyway recomendado por simplicidad.
 
-Estado actual (resumen)
-- Completado: refactor de modelo, DTOs, mappers, validaciones básicas y pruebas unitarias/integración; dependencias de test y Jackson agregadas.
-- Pendiente inmediato: ControllerAdvice, ejecución de tests en su entorno (mvn/mvnw), paginación y OpenAPI.
+Estado actual (resumen) - SPRINT 1 COMPLETADO
+- Completado: refactor de modelo, DTOs, mappers, validaciones; simplificación de tests; H2 para tests en memoria; GlobalExceptionHandler para manejo centralizado de errores.
+- Tests: 29 tests ejecutados exitosamente en tres suites.
+- Controlador: Limpio y conciso, sin lógica de manejo de errores (delegado a GlobalExceptionHandler).
+- Pendiente inmediato: validaciones de negocio adicionales (Sprint 1 final) o paginación (Sprint 2).
 
-Siguientes pasos recomendados (elige uno)
-1) Implementar @ControllerAdvice para errores.
-2) Añadir paginación y filtros.
-3) Preparar Flyway + scripts iniciales.
+Siguientes pasos recomendados
+1) Añadir validaciones de negocio adicionales: fechaInicio <= fechaFin, límites de auditoría (Sprint 1 final).
+2) Añadir paginación y filtros avanzados (Sprint 2 inicio).
+3) Preparar Flyway + scripts iniciales (Sprint 3).

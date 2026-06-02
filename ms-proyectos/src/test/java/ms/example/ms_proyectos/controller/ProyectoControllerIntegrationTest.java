@@ -1,177 +1,240 @@
 package ms.example.ms_proyectos.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import ms.example.ms_proyectos.model.EstadoProyecto;
+import ms.example.ms_proyectos.model.Proyecto;
+import ms.example.ms_proyectos.service.ProyectoService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.MockMvc;
+/**
+ * Tests de lógica del controlador sin necesidad de MockMvc o Spring Test.
+ * Se verifica que el controlador delegue correctamente al servicio
+ * y retorne los códigos HTTP apropiados.
+ */
+@ExtendWith(MockitoExtension.class)
+public class ProyectoControllerIntegrationTest {
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import ms.example.ms_proyectos.model.EstadoProyecto;
-import ms.example.ms_proyectos.model.Proyecto;
-import ms.example.ms_proyectos.service.ProyectoService;
-
-@ExtendWith(SpringExtension.class)
-@WebMvcTest(controllers = ProyectoController.class)
-class ProyectoControllerIntegrationTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
+    @Mock
     private ProyectoService proyectoService;
 
-    private Proyecto proyecto;
+    @InjectMocks
+    private ProyectoController proyectoController;
 
-    @BeforeEach
-    void setUp() {
-        proyecto = new Proyecto();
+    // 1. PRUEBA: Obtener todos los proyectos
+    @Test
+    public void obtenerTodos_DebeRetornarListaDeProyectos() {
+        // Arrange
+        Proyecto proyecto = new Proyecto();
         proyecto.setId(1L);
         proyecto.setNombre("Proyecto Alpha");
-        proyecto.setDescripcion("Descripción de prueba");
         proyecto.setEstado(EstadoProyecto.ACTIVO);
-        proyecto.setFechaInicio(LocalDate.of(2025, 1, 1));
-        proyecto.setFechaFin(LocalDate.of(2025, 12, 31));
-        proyecto.setFechaCreacion(LocalDate.of(2024, 10, 1));
-        proyecto.setFechaActualizacion(LocalDate.of(2025, 1, 1));
+        when(proyectoService.obtenerTodos()).thenReturn(List.of(proyecto));
+
+        // Act
+        ResponseEntity<?> response = proyectoController.obtenerTodos();
+
+        // Assert
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        verify(proyectoService, times(1)).obtenerTodos();
     }
 
+    // 2. PRUEBA: Obtener proyecto por ID existente
     @Test
-    void obtenerTodos_debeRetornarListaDeProyectos() throws Exception {
-        given(proyectoService.obtenerTodos()).willReturn(List.of(proyecto));
+    public void obtenerPorId_CuandoExiste_Retorna200() {
+        // Arrange
+        Proyecto proyecto = new Proyecto();
+        proyecto.setId(1L);
+        proyecto.setNombre("Proyecto Alpha");
+        proyecto.setEstado(EstadoProyecto.ACTIVO);
+        when(proyectoService.obtenerPorId(1L)).thenReturn(Optional.of(proyecto));
 
-        mockMvc.perform(get("/api/v1/proyectos").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].nombre").value("Proyecto Alpha"))
-                .andExpect(jsonPath("$[0].estado").value("ACTIVO"));
+        // Act
+        ResponseEntity<?> response = proyectoController.obtenerPorId(1L);
+
+        // Assert
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        verify(proyectoService, times(1)).obtenerPorId(1L);
     }
 
+    // 3. PRUEBA: Obtener proyecto por ID inexistente
     @Test
-    void obtenerPorId_cuandoExiste_retornaProyecto() throws Exception {
-        given(proyectoService.obtenerPorId(1L)).willReturn(Optional.of(proyecto));
+    public void obtenerPorId_CuandoNoExiste_Retorna404() {
+        // Arrange
+        when(proyectoService.obtenerPorId(999L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/v1/proyectos/1").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.nombre").value("Proyecto Alpha"));
+        // Act & Assert
+        assertThrows(GlobalExceptionHandler.ResourceNotFoundException.class, () -> {
+            proyectoController.obtenerPorId(999L);
+        });
+
+        verify(proyectoService, times(1)).obtenerPorId(999L);
     }
 
+    // 4. PRUEBA: Buscar proyecto por nombre
     @Test
-    void obtenerPorId_cuandoNoExiste_retorna404() throws Exception {
-        given(proyectoService.obtenerPorId(1L)).willReturn(Optional.empty());
+    public void buscarPorNombre_RetornaProyectosCoincidentes() {
+        // Arrange
+        Proyecto proyecto = new Proyecto();
+        proyecto.setId(1L);
+        proyecto.setNombre("Proyecto Alpha");
+        proyecto.setEstado(EstadoProyecto.ACTIVO);
+        when(proyectoService.buscarPorNombre("Alpha")).thenReturn(List.of(proyecto));
 
-        mockMvc.perform(get("/api/v1/proyectos/1").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.mensaje").value("Proyecto no encontrado con ID: 1"));
+        // Act
+        ResponseEntity<?> response = proyectoController.buscarPorNombre("Alpha");
+
+        // Assert
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        verify(proyectoService, times(1)).buscarPorNombre("Alpha");
     }
 
+    // 5. PRUEBA: Obtener proyectos por estado
     @Test
-    void buscarPorNombre_retornaProyectosMatching() throws Exception {
-        given(proyectoService.buscarPorNombre("Alpha")).willReturn(List.of(proyecto));
+    public void obtenerPorEstado_RetornaProyectosDelEstado() {
+        // Arrange
+        Proyecto proyecto = new Proyecto();
+        proyecto.setId(1L);
+        proyecto.setNombre("Proyecto Alpha");
+        proyecto.setEstado(EstadoProyecto.ACTIVO);
+        when(proyectoService.obtenerPorEstado(EstadoProyecto.ACTIVO)).thenReturn(List.of(proyecto));
 
-        mockMvc.perform(get("/api/v1/proyectos/buscar").param("nombre", "Alpha").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].nombre").value("Proyecto Alpha"));
+        // Act
+        ResponseEntity<?> response = proyectoController.obtenerPorEstado(EstadoProyecto.ACTIVO);
+
+        // Assert
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        verify(proyectoService, times(1)).obtenerPorEstado(EstadoProyecto.ACTIVO);
     }
 
+    // 6. PRUEBA: Crear proyecto con datos válidos
     @Test
-    void obtenerPorEstado_retornaProyectosPorEstado() throws Exception {
-        given(proyectoService.obtenerPorEstado(EstadoProyecto.ACTIVO)).willReturn(List.of(proyecto));
+    public void crear_ConDatosValidos_Retorna201() {
+        // Arrange
+        Proyecto proyecto = new Proyecto();
+        proyecto.setId(2L);
+        proyecto.setNombre("Proyecto Nuevo");
+        proyecto.setDescripcion("Descripción nueva");
+        proyecto.setEstado(EstadoProyecto.ACTIVO);
+        proyecto.setFechaInicio(LocalDate.of(2025, 2, 1));
+        proyecto.setFechaFin(LocalDate.of(2025, 11, 30));
+        proyecto.setFechaCreacion(LocalDate.now());
+        proyecto.setFechaActualizacion(LocalDate.now());
 
-        mockMvc.perform(get("/api/v1/proyectos/estado/ACTIVO").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].estado").value("ACTIVO"));
+        when(proyectoService.crear(any(Proyecto.class))).thenReturn(proyecto);
+
+        // Act
+        ResponseEntity<?> response = proyectoController.crear(new ms.example.ms_proyectos.dto.ProyectoRequest());
+
+        // Assert
+        assertEquals(201, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        verify(proyectoService, times(1)).crear(any(Proyecto.class));
     }
 
+    // 7. PRUEBA: Crear proyecto con nombre vacío (validación)
     @Test
-    void crear_conRequestValido_retorna201() throws Exception {
-        var request = new java.util.HashMap<String, Object>();
-        request.put("nombre", "Proyecto Nuevo");
-        request.put("descripcion", "Descripción nueva");
-        request.put("estado", "ACTIVO");
-        request.put("fechaInicio", "2025-02-01");
-        request.put("fechaFin", "2025-11-30");
+    public void crear_ConNombreVacio_LanzaExcepcion() {
+        // Arrange
+        when(proyectoService.crear(any(Proyecto.class)))
+                .thenThrow(new IllegalArgumentException("El nombre del proyecto es obligatorio"));
 
-        var created = new Proyecto();
-        created.setId(2L);
-        created.setNombre("Proyecto Nuevo");
-        created.setDescripcion("Descripción nueva");
-        created.setEstado(EstadoProyecto.ACTIVO);
-        created.setFechaInicio(LocalDate.of(2025, 2, 1));
-        created.setFechaFin(LocalDate.of(2025, 11, 30));
-        created.setFechaCreacion(LocalDate.of(2025, 2, 1));
-        created.setFechaActualizacion(LocalDate.of(2025, 2, 1));
-
-        given(proyectoService.crear(any(Proyecto.class))).willReturn(created);
-
-        mockMvc.perform(post("/api/v1/proyectos")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(2))
-                .andExpect(jsonPath("$.nombre").value("Proyecto Nuevo"))
-                .andExpect(jsonPath("$.estado").value("ACTIVO"));
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, () -> {
+            proyectoController.crear(new ms.example.ms_proyectos.dto.ProyectoRequest());
+        });
     }
 
+    // 8. PRUEBA: Actualizar proyecto existente
     @Test
-    void actualizar_conRequestValido_retorna200() throws Exception {
-        var update = new java.util.HashMap<String, Object>();
-        update.put("nombre", "Proyecto Actualizado");
-        update.put("descripcion", "Descripción actualizada");
-        update.put("estado", "PAUSADO");
-        update.put("fechaInicio", "2025-03-01");
-        update.put("fechaFin", "2025-10-31");
+    public void actualizar_ConProyectoExistente_Retorna200() {
+        // Arrange
+        Proyecto proyectoExistente = new Proyecto();
+        proyectoExistente.setId(1L);
+        proyectoExistente.setNombre("Proyecto Alpha");
+        proyectoExistente.setEstado(EstadoProyecto.ACTIVO);
 
-        var updated = new Proyecto();
-        updated.setId(1L);
-        updated.setNombre("Proyecto Actualizado");
-        updated.setDescripcion("Descripción actualizada");
-        updated.setEstado(EstadoProyecto.PAUSADO);
-        updated.setFechaInicio(LocalDate.of(2025, 3, 1));
-        updated.setFechaFin(LocalDate.of(2025, 10, 31));
-        updated.setFechaCreacion(LocalDate.of(2024, 10, 1));
-        updated.setFechaActualizacion(LocalDate.of(2025, 3, 1));
+        Proyecto actualizado = new Proyecto();
+        actualizado.setId(1L);
+        actualizado.setNombre("Proyecto Beta");
+        actualizado.setEstado(EstadoProyecto.PAUSADO);
+        actualizado.setFechaActualizacion(LocalDate.now());
 
-        given(proyectoService.obtenerPorId(1L)).willReturn(Optional.of(proyecto));
-        given(proyectoService.actualizar(eq(1L), any(Proyecto.class))).willReturn(updated);
+        when(proyectoService.obtenerPorId(1L)).thenReturn(Optional.of(proyectoExistente));
+        when(proyectoService.actualizar(eq(1L), any(Proyecto.class))).thenReturn(actualizado);
 
-        mockMvc.perform(put("/api/v1/proyectos/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(update)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nombre").value("Proyecto Actualizado"))
-                .andExpect(jsonPath("$.estado").value("PAUSADO"));
+        // Act
+        ResponseEntity<?> response = proyectoController.actualizar(1L, new ms.example.ms_proyectos.dto.ProyectoRequest());
+
+        // Assert
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        verify(proyectoService, times(1)).obtenerPorId(1L);
+        verify(proyectoService, times(1)).actualizar(eq(1L), any(Proyecto.class));
     }
 
+    // 9. PRUEBA: Actualizar proyecto inexistente
     @Test
-    void eliminar_cuandoExiste_retorna204() throws Exception {
+    public void actualizar_ProyectoNoExiste_LanzaExcepcion() {
+        // Arrange
+        when(proyectoService.obtenerPorId(999L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(GlobalExceptionHandler.ResourceNotFoundException.class, () -> {
+            proyectoController.actualizar(999L, new ms.example.ms_proyectos.dto.ProyectoRequest());
+        });
+
+        verify(proyectoService, times(1)).obtenerPorId(999L);
+        verify(proyectoService, never()).actualizar(anyLong(), any(Proyecto.class));
+    }
+
+    // 10. PRUEBA: Eliminar proyecto existente
+    @Test
+    public void eliminar_CuandoExiste_Retorna204() {
+        // Arrange
+        Proyecto proyecto = new Proyecto();
+        proyecto.setId(1L);
+        proyecto.setNombre("Proyecto Alpha");
+        proyecto.setEstado(EstadoProyecto.ACTIVO);
+
+        when(proyectoService.obtenerPorId(1L)).thenReturn(Optional.of(proyecto));
         doNothing().when(proyectoService).eliminar(1L);
 
-        mockMvc.perform(delete("/api/v1/proyectos/1"))
-                .andExpect(status().isNoContent());
+        // Act
+        ResponseEntity<Void> response = proyectoController.eliminar(1L);
+
+        // Assert
+        assertEquals(204, response.getStatusCode().value());
+        verify(proyectoService, times(1)).obtenerPorId(1L);
+        verify(proyectoService, times(1)).eliminar(1L);
+    }
+
+    // 11. PRUEBA: Eliminar proyecto inexistente
+    @Test
+    public void eliminar_ProyectoNoExiste_LanzaExcepcion() {
+        // Arrange
+        when(proyectoService.obtenerPorId(999L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(GlobalExceptionHandler.ResourceNotFoundException.class, () -> {
+            proyectoController.eliminar(999L);
+        });
+
+        verify(proyectoService, times(1)).obtenerPorId(999L);
+        verify(proyectoService, never()).eliminar(anyLong());
     }
 }

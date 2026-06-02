@@ -12,9 +12,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Controlador REST para gestionar proyectos.
+ * Endpoints para operaciones CRUD y búsquedas.
+ * El manejo de excepciones está centralizado en GlobalExceptionHandler.
+ */
 @RestController
 @RequestMapping("/api/v1/proyectos")
 public class ProyectoController {
@@ -25,87 +29,104 @@ public class ProyectoController {
         this.proyectoService = proyectoService;
     }
 
+    /**
+     * GET /api/v1/proyectos
+     * Obtiene todos los proyectos.
+     */
     @GetMapping
     public ResponseEntity<List<ProyectoResponse>> obtenerTodos() {
-        try {
-            List<Proyecto> proyectos = proyectoService.obtenerTodos();
-            List<ProyectoResponse> resp = proyectos.stream().map(ProyectoMapper::toResponse).collect(Collectors.toList());
-            return ResponseEntity.ok(resp);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        List<Proyecto> proyectos = proyectoService.obtenerTodos();
+        List<ProyectoResponse> respuesta = proyectos.stream()
+                .map(ProyectoMapper::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(respuesta);
     }
 
+    /**
+     * GET /api/v1/proyectos/{id}
+     * Obtiene un proyecto por ID.
+     * @throws GlobalExceptionHandler.ResourceNotFoundException si el proyecto no existe
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
-        try {
-            return proyectoService.obtenerPorId(id)
-                    .map(ProyectoMapper::toResponse)
-                    .<ResponseEntity<?>>map(ResponseEntity::ok)
-                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("estado", "error", "mensaje", "Proyecto no encontrado con ID: " + id)));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<ProyectoResponse> obtenerPorId(@PathVariable Long id) {
+        return proyectoService.obtenerPorId(id)
+                .map(ProyectoMapper::toResponse)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new GlobalExceptionHandler.ResourceNotFoundException(
+                        "Proyecto no encontrado con ID: " + id));
     }
 
+    /**
+     * GET /api/v1/proyectos/buscar?nombre=xxx
+     * Busca proyectos por nombre (búsqueda parcial, insensible a mayúsculas).
+     */
     @GetMapping("/buscar")
     public ResponseEntity<List<ProyectoResponse>> buscarPorNombre(@RequestParam String nombre) {
-        try {
-            List<Proyecto> proyectos = proyectoService.buscarPorNombre(nombre);
-            List<ProyectoResponse> resp = proyectos.stream().map(ProyectoMapper::toResponse).collect(Collectors.toList());
-            return ResponseEntity.ok(resp);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        List<Proyecto> proyectos = proyectoService.buscarPorNombre(nombre);
+        List<ProyectoResponse> respuesta = proyectos.stream()
+                .map(ProyectoMapper::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(respuesta);
     }
 
+    /**
+     * GET /api/v1/proyectos/estado/{estado}
+     * Obtiene proyectos filtrados por estado.
+     */
     @GetMapping("/estado/{estado}")
     public ResponseEntity<List<ProyectoResponse>> obtenerPorEstado(@PathVariable EstadoProyecto estado) {
-        try {
-            List<Proyecto> proyectos = proyectoService.obtenerPorEstado(estado);
-            List<ProyectoResponse> resp = proyectos.stream().map(ProyectoMapper::toResponse).collect(Collectors.toList());
-            return ResponseEntity.ok(resp);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        List<Proyecto> proyectos = proyectoService.obtenerPorEstado(estado);
+        List<ProyectoResponse> respuesta = proyectos.stream()
+                .map(ProyectoMapper::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(respuesta);
     }
 
+    /**
+     * POST /api/v1/proyectos
+     * Crea un nuevo proyecto.
+     * @throws IllegalArgumentException si los datos son inválidos o el nombre está duplicado
+     */
     @PostMapping
-    public ResponseEntity<?> crear(@Valid @RequestBody ProyectoRequest proyectoRequest) {
-        try {
-            Proyecto entidad = ProyectoMapper.toEntity(proyectoRequest);
-            Proyecto creado = proyectoService.crear(entidad);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ProyectoMapper.toResponse(creado));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("estado", "error", "mensaje", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("estado", "error", "mensaje", "Error al crear el proyecto"));
-        }
+    public ResponseEntity<ProyectoResponse> crear(@Valid @RequestBody ProyectoRequest proyectoRequest) {
+        Proyecto entidad = ProyectoMapper.toEntity(proyectoRequest);
+        Proyecto creado = proyectoService.crear(entidad);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ProyectoMapper.toResponse(creado));
     }
 
+    /**
+     * PUT /api/v1/proyectos/{id}
+     * Actualiza un proyecto existente.
+     * @throws GlobalExceptionHandler.ResourceNotFoundException si el proyecto no existe
+     * @throws IllegalArgumentException si los datos son inválidos
+     */
     @PutMapping("/{id}")
-    public ResponseEntity<?> actualizar(@PathVariable Long id, @Valid @RequestBody ProyectoRequest proyectoRequest) {
-        try {
-            Proyecto proyectoActualizado = proyectoService.obtenerPorId(id).orElseThrow(() -> new IllegalArgumentException("Proyecto no encontrado con ID: " + id));
-            ProyectoMapper.updateEntityFromRequest(proyectoRequest, proyectoActualizado);
-            Proyecto guardado = proyectoService.actualizar(id, proyectoActualizado);
-            return ResponseEntity.ok(ProyectoMapper.toResponse(guardado));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("estado", "error", "mensaje", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("estado", "error", "mensaje", "Error al actualizar el proyecto"));
-        }
+    public ResponseEntity<ProyectoResponse> actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody ProyectoRequest proyectoRequest) {
+
+        Proyecto proyectoExistente = proyectoService.obtenerPorId(id)
+                .orElseThrow(() -> new GlobalExceptionHandler.ResourceNotFoundException(
+                        "Proyecto no encontrado con ID: " + id));
+
+        ProyectoMapper.updateEntityFromRequest(proyectoRequest, proyectoExistente);
+        Proyecto actualizado = proyectoService.actualizar(id, proyectoExistente);
+
+        return ResponseEntity.ok(ProyectoMapper.toResponse(actualizado));
     }
 
+    /**
+     * DELETE /api/v1/proyectos/{id}
+     * Elimina un proyecto.
+     * @throws GlobalExceptionHandler.ResourceNotFoundException si el proyecto no existe
+     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminar(@PathVariable Long id) {
-        try {
-            proyectoService.eliminar(id);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("estado", "error", "mensaje", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("estado", "error", "mensaje", "Error al eliminar el proyecto"));
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        if (!proyectoService.obtenerPorId(id).isPresent()) {
+            throw new GlobalExceptionHandler.ResourceNotFoundException(
+                    "Proyecto no encontrado con ID: " + id);
         }
+        proyectoService.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 }
