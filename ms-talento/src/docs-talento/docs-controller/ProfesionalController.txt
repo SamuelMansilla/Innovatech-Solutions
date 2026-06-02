@@ -1,0 +1,23 @@
+========================================================================
+DOCUMENTACIÓN DE CLASE: ProfesionalController
+UBICACIÓN: ms.example.ms_talento.controller
+========================================================================
+
+DESCRIPCIÓN:
+Controlador REST que expone los endpoints para la gestión de los recursos humanos.
+Es la puerta de entrada para que otros microservicios (como analítica) o el 
+frontend puedan consultar y actualizar la capacidad del equipo.
+
+DEPENDENCIAS:
+- ProfesionalRepository: Inyectado mediante el constructor (buena práctica que 
+  facilita el testing) para interactuar con la base de datos.
+
+ENDPOINTS:
+1. POST /api/v1/talento/profesionales
+   - Propósito: Registrar un nuevo profesional en la base de datos.
+   - Body esperado: JSON con 'nombre', 'rol' y 'horasDisponibles'.
+   - Retorno: Código 200 OK con el objeto guardado incluyendo su ID generado.
+
+2. GET /api/v1/talento/profesionales
+   - Propósito: Obtener el listado completo del talento disponible.
+   - Retorno: Código 200 OK con un array JSON de todos los profesionales y su capacity.

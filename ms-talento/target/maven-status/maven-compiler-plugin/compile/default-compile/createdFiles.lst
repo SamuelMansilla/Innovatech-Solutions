@@ -1,0 +1,4 @@
+ms\example\ms_talento\controller\ProfesionalController.class
+ms\example\ms_talento\MsTalentoApplication.class
+ms\example\ms_talento\repository\ProfesionalRepository.class
+ms\example\ms_talento\model\Profesional.class

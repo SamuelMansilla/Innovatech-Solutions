@@ -1,0 +1,19 @@
+========================================================================
+DOCUMENTACIÓN DE INTERFAZ: ProfesionalRepository
+UBICACIÓN: ms.example.ms_talento.repository
+========================================================================
+
+DESCRIPCIÓN:
+Interfaz que implementa el Patrón de Diseño Repository exigido en la rúbrica.
+Actúa como la capa de acceso a datos (DAO), aislando la lógica de base de datos 
+de la lógica de negocio.
+
+HERENCIA:
+- Extiende de JpaRepository<Profesional, Long>.
+
+FUNCIONALIDAD:
+- Al extender de JpaRepository, Spring Data JPA genera automáticamente en tiempo 
+  de ejecución todas las consultas SQL necesarias (Dialecto Oracle) para realizar 
+  operaciones CRUD (Create, Read, Update, Delete) sin necesidad de escribir 
+  sentencias SQL manuales.
+- Provee métodos listos para usar como save(), findAll(), findById(), etc.

@@ -1,0 +1,22 @@
+========================================================================
+DOCUMENTACIÓN DE CLASE: Profesional
+UBICACIÓN: ms.example.ms_talento.model
+========================================================================
+
+DESCRIPCIÓN:
+Clase de entidad (Entity) que representa la tabla 'profesionales' en la base de datos Oracle.
+Su propósito es modelar los datos de los recursos humanos de Innovatech Solutions,
+cumpliendo con el requerimiento de la rúbrica de "gestionar la capacidad (capacity) 
+de los recursos humanos".
+
+ANOTACIONES JPA:
+- @Entity: Indica a Hibernate que esta clase es una entidad persistente.
+- @Table(name = "profesionales"): Mapea la clase a la tabla específica en Oracle.
+- @Id y @GeneratedValue(strategy = GenerationType.IDENTITY): Configuran la clave 
+  primaria autoincremental gestionada por la base de datos.
+
+ATRIBUTOS CLAVE:
+- nombre (String): Nombre del empleado.
+- rol (String): Especialidad técnica (ej. Frontend, Backend, DevOps).
+- horasDisponibles (Integer): Representa el "capacity" actual del profesional, 
+  fundamental para el cálculo de métricas en el módulo de analítica.
