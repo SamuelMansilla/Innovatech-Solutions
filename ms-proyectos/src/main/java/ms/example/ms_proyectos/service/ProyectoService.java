@@ -3,6 +3,8 @@ package ms.example.ms_proyectos.service;
 import ms.example.ms_proyectos.model.Proyecto;
 import ms.example.ms_proyectos.model.EstadoProyecto;
 import ms.example.ms_proyectos.repository.ProyectoRepository;
+import ms.example.ms_proyectos.events.ProjectEvent;
+import ms.example.ms_proyectos.kafka.KafkaProducerService;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
@@ -12,10 +14,12 @@ import java.util.Optional;
 public class ProyectoService {
 
     private final ProyectoRepository proyectoRepository;
+    private final KafkaProducerService kafkaProducerService;
 
     // Inyección de dependencias por constructor (mejor práctica en Spring Boot)
-    public ProyectoService(ProyectoRepository proyectoRepository) {
+    public ProyectoService(ProyectoRepository proyectoRepository, KafkaProducerService kafkaProducerService) {
         this.proyectoRepository = proyectoRepository;
+        this.kafkaProducerService = kafkaProducerService;
     }
 
     /**
@@ -68,7 +72,22 @@ public class ProyectoService {
 
         proyecto.setFechaCreacion(LocalDate.now());
         proyecto.setFechaActualizacion(LocalDate.now());
-        return proyectoRepository.save(proyecto);
+        Proyecto saved = proyectoRepository.save(proyecto);
+
+        // Publicar evento asincrónico
+        ProjectEvent event = new ProjectEvent();
+        event.setEventType("ProjectCreated");
+        event.setId(saved.getId());
+        event.setNombre(saved.getNombre());
+        event.setDescripcion(saved.getDescripcion());
+        event.setEstado(saved.getEstado().name());
+        event.setFechaInicio(saved.getFechaInicio());
+        event.setFechaFin(saved.getFechaFin());
+        event.setFechaCreacion(saved.getFechaCreacion());
+        event.setFechaActualizacion(saved.getFechaActualizacion());
+        kafkaProducerService.sendEvent(event);
+
+        return saved;
     }
 
     /**
@@ -91,7 +110,22 @@ public class ProyectoService {
         proyecto.setFechaFin(proyectoActualizado.getFechaFin());
         proyecto.setFechaActualizacion(LocalDate.now());
 
-        return proyectoRepository.save(proyecto);
+        Proyecto saved = proyectoRepository.save(proyecto);
+
+        // Publicar evento de actualización
+        ProjectEvent event = new ProjectEvent();
+        event.setEventType("ProjectUpdated");
+        event.setId(saved.getId());
+        event.setNombre(saved.getNombre());
+        event.setDescripcion(saved.getDescripcion());
+        event.setEstado(saved.getEstado().name());
+        event.setFechaInicio(saved.getFechaInicio());
+        event.setFechaFin(saved.getFechaFin());
+        event.setFechaCreacion(saved.getFechaCreacion());
+        event.setFechaActualizacion(saved.getFechaActualizacion());
+        kafkaProducerService.sendEvent(event);
+
+        return saved;
     }
 
     /**
