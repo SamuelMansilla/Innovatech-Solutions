@@ -1,6 +1,6 @@
 package ms.example.ms_analitica.kafka;
 
-import ms.example.ms_analitica.events.ProjectEvent;
+import ms.example.common.events.ProjectEvent;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

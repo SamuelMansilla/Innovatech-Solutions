@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import ms.example.ms_proyectos.model.EstadoProyecto;
 import ms.example.ms_proyectos.model.Proyecto;
 import ms.example.ms_proyectos.repository.ProyectoRepository;
+import ms.example.ms_proyectos.kafka.KafkaProducerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,6 +22,9 @@ public class ProyectoServiceTest {
 
     @Mock
     private ProyectoRepository proyectoRepository;
+
+    @Mock
+    private KafkaProducerService kafkaProducerService;
 
     @InjectMocks
     private ProyectoService proyectoService;

@@ -107,7 +107,13 @@
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-clients</artifactId>
 			<version>3.6.1</version>
-			<scope>test</scope>
+		</dependency>
+		
+		<!-- Shared DTOs module -->
+		<dependency>
+			<groupId>ms.example</groupId>
+			<artifactId>ms-common</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 

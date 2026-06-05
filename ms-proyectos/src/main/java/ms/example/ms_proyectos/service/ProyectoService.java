@@ -3,7 +3,7 @@ package ms.example.ms_proyectos.service;
 import ms.example.ms_proyectos.model.Proyecto;
 import ms.example.ms_proyectos.model.EstadoProyecto;
 import ms.example.ms_proyectos.repository.ProyectoRepository;
-import ms.example.ms_proyectos.events.ProjectEvent;
+import ms.example.common.events.ProjectEvent;
 import ms.example.ms_proyectos.kafka.KafkaProducerService;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;

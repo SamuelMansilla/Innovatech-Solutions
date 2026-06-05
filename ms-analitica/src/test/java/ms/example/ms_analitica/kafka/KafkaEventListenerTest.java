@@ -2,7 +2,7 @@ package ms.example.ms_analitica.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import ms.example.ms_analitica.events.ProjectEvent;
+import ms.example.common.events.ProjectEvent;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;

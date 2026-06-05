@@ -2,7 +2,6 @@ ms\example\ms_proyectos\controller\GlobalExceptionHandler.class
 ms\example\ms_proyectos\MsProyectosApplication.class
 ms\example\ms_proyectos\model\EstadoProyecto.class
 ms\example\ms_proyectos\model\Proyecto.class
-ms\example\ms_proyectos\mapper\ProyectoMapper.class
 ms\example\ms_proyectos\dto\ErrorResponse.class
 ms\example\ms_proyectos\dto\ProyectoRequest.class
 ms\example\ms_proyectos\controller\GlobalExceptionHandler$ResourceNotFoundException.class
