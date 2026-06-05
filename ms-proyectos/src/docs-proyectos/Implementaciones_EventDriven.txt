@@ -1,0 +1,62 @@
+Informe de implementaciones Event-Driven
+=====================================
+
+Resumen
+-------
+Se añadió un esqueleto de integración event-driven entre los microservicios `ms-proyectos` y `ms-analitica` usando Kafka como broker de eventos. El objetivo es desacoplar la generación de métricas/reportes del flujo sincronizado de CRUD de proyectos y aumentar la resiliencia y escalabilidad.
+
+Cambios principales (por módulo)
+--------------------------------
+- ms-proyectos:
+  - `ProjectEvent` DTO: estructura JSON del evento (eventType, id, nombre, descripcion, estado, fechas).
+  - `KafkaProducerService`: servicio que serializa eventos a JSON y publica en el topic `projects.events` usando `KafkaTemplate<String,String>`.
+  - Modificaciones en `ProyectoService`: tras crear o actualizar un proyecto se publica un evento `ProjectCreated` o `ProjectUpdated` con los datos relevantes.
+  - Tests añadidos: `ProyectoServiceEventTest` (unitario, mockea `KafkaProducerService`) y `ProyectoServiceKafkaIT` (integration test con Testcontainers Kafka para verificar envío real al topic).
+
+- ms-analitica:
+  - `ProjectEvent` DTO (equivalente al de ms-proyectos) para deserializar eventos entrantes.
+  - `KafkaEventListener`: listener que recibe mensajes del topic `projects.events`, deserializa y los pasa al `AnalyticsEventStore`.
+  - `AnalyticsEventStore`: almacenamiento en memoria (componente) para pruebas y demostración de procesamiento de eventos.
+  - Tests: `KafkaEventListenerTest` (unitario) y `KafkaListenerIT` (integration test con Testcontainers Kafka que envía un mensaje y verifica que el listener lo procesa).
+
+Dependencias y configuración
+----------------------------
+- Se añadieron `spring-kafka` y `jackson-datatype-jsr310` en los POMs para soporte de Kafka y serialización de `LocalDate`.
+- Para pruebas end-to-end se añadieron `testcontainers` y `kafka-clients` en los POMs; los ITs arrancan un contenedor Kafka y se saltan automáticamente cuando Docker no está disponible.
+- En tests unitarios se registró `JavaTimeModule` en `ObjectMapper` para serializar fechas y se añadió una `@TestConfiguration` en `MsProyectosApplicationTests` que provee un `KafkaTemplate` falso (bootstrap `localhost:9092`) para permitir la carga del contexto sin broker real.
+
+Justificación técnica
+---------------------
+- Desacoplamiento: publicar eventos permite separar la persistencia/operación de proyectos del procesamiento analítico. ms-analitica puede procesar eventos a su propio ritmo.
+- Escalabilidad: la ingestión de métricas/reportes se puede escalar independientemente y usar particiones/topics para repartir la carga.
+- Resiliencia: con Event Bus y circuit breakers (en rutas síncronas) evitamos bloqueos por latencia o fallos de ms-analitica. Las operaciones core de proyectos no dependen de la disponibilidad del consumidor.
+- Flexibilidad futura: el esquema JSON puede evolucionar y versionarse; recomendamos eventualmente centralizar el DTO en un módulo `common` o emplear Avro/Schema Registry para contratos fuertes.
+
+Funcionamiento (flujo básico)
+----------------------------
+1. El cliente (o sistema interno) crea/actualiza un proyecto mediante `ms-proyectos`.
+2. `ProyectoService.crear()` / `actualizar()` persiste el cambio en la base de datos.
+3. Tras persistir, se construye un `ProjectEvent` con `eventType` apropiado y metadatos del proyecto.
+4. `KafkaProducerService` serializa a JSON y publica el mensaje en `projects.events` con `KafkaTemplate`.
+5. `ms-analitica` (listener) recibe el mensaje desde el topic, deserializa el JSON a `ProjectEvent` y lo almacena en `AnalyticsEventStore` para procesamiento posterior (agregación, generación de reportes, cálculo de métricas).
+
+Notas sobre tests
+-----------------
+- Unit tests: verifican que `ProyectoService` invoca al productor y que el listener parsea y almacena correctamente eventos.
+- Integration tests (Testcontainers): arranca un broker Kafka real en Docker, verifica envío y recepción en el topic `projects.events`. Estos tests están diseñados para ejecutarse donde Docker esté disponible; si Docker no está disponible en el entorno, se saltan automáticamente para evitar fallos en entornos limitados.
+
+Recomendaciones y siguientes pasos
+---------------------------------
+1. Extraer `ProjectEvent` a un módulo `common` compartido entre microservicios para evitar duplicación y asegurar contratos.
+2. Añadir control de versiones de eventos (eventType + version) o usar Avro + Schema Registry para garantizar compatibilidad y evolución segura del esquema.
+3. Mover ITs a un perfil Maven `integration` o etiquetarlos con `@Tag("integration")` y configurar CI para ejecutar ITs en runners con Docker habilitado.
+4. Añadir métricas y observabilidad (Micrometer, trazas OpenTelemetry) para monitorear latencia/throughput del bus de eventos.
+5. Implementar políticas de retry y dead-letter topics en consumidores para manejar mensajes inválidos o con errores.
+
+Contacto
+-------
+Si queréis, puedo:
+- Extraer `ProjectEvent` a `ms-common` y actualizar imports, o
+- Implementar soporte Avro/Schema Registry y migrar tests a usar el schema.
+
+Fin del informe.
