@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: ms.example.ms_proyectos.controller.ProyectoControllerIntegrationTest
 -------------------------------------------------------------------------------
-Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.191 s -- in ms.example.ms_proyectos.controller.ProyectoControllerIntegrationTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.198 s -- in ms.example.ms_proyectos.controller.ProyectoControllerIntegrationTest
