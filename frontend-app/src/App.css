@@ -1,184 +1,296 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
-
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
+/* src/App.css */
+:root {
+  --brand-color: #cbdf90;      /* Tu color base (Verde Lima/Pistacho suave) */
+  --brand-dark: #7a9336;       /* Versión oscura para texto/botones */
+  --brand-light: #f0f6df;      /* Fondo ultra suave para elementos secundarios */
+  --bg-primary: #f8faf4;       /* Fondo de la pantalla con un ligero tinte orgánico */
+  --bg-surface: #ffffff;       /* Fondo blanco puro para las tarjetas y tablas */
+  --text-main: #223014;        /* Texto principal (Oliva profundo casi negro para alto contraste) */
+  --text-muted: #556644;       /* Texto secundario o explicaciones */
+  --border-color: #e3ebd5;     /* Bordes suaves que combinan con la paleta */
+  --success-green: #4f7a28;    /* Verde para estados completados */
+  --danger-orange: #d97706;    /* Ámbar/Naranja para estados en progreso o alertas */
 }
 
-.hero {
-  position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
+body {
+  background-color: var(--bg-primary);
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text-main);
+  margin: 0;
+  transition: background-color 0.3s ease;
 }
 
-#center {
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Encabezado */
+.dashboard-header {
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 2.4rem;
+  font-weight: 800;
+}
+
+.dashboard-header p {
+  margin: 0.25rem 0 0 0;
+  color: var(--text-muted);
+}
+
+/* Botón de Sincronización */
+.btn-refresh {
+  background-color: var(--brand-color);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.04);
+}
+
+.btn-refresh:hover:not(:disabled) {
+  background-color: var(--brand-dark);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 0.08);
+}
+
+/* Pestañas de Navegación */
+.dashboard-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2.5rem;
+  background-color: #edf2e4;
+  padding: 0.4rem;
+  border-radius: 10px;
+  width: fit-content;
+}
+
+.tab-link {
+  background: none;
+  border: none;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 7px;
+  transition: all 0.2s ease;
+}
+
+.tab-link:hover {
+  color: var(--text-main);
+}
+
+.tab-link.active {
+  background-color: var(--bg-surface);
+  color: var(--text-main);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.05);
+}
+
+/* Títulos de sección */
+.section-title-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.section-title-container h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--text-main);
+}
+
+.badge-count {
+  background-color: var(--brand-light);
+  color: var(--brand-dark);
+  border: 1px solid var(--border-color);
+  padding: 0.2rem 0.8rem;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+/* Cuadrícula de Métricas principales (Avance Global) */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.metric-card {
+  background: var(--bg-surface);
+  padding: 1.5rem;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  border-top: 4px solid var(--brand-color);
+}
+
+.metric-card.progreso { border-top-color: var(--danger-orange); }
+.metric-card.completado { border-top-color: var(--success-green); }
+
+.metric-card h3 {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric-value {
+  margin: 0.5rem 0 0 0;
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+/* Barras de Progreso */
+.progress-bar-container {
+  background-color: var(--brand-light);
+  border-radius: 9999px;
+  height: 10px;
+  margin-top: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.progress-bar-container.mini { height: 6px; margin-top: 0.5rem; background-color: #f1f5f9; border: none; }
+
+.progress-bar-fill {
+  background-color: var(--brand-dark);
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-bar-fill.en_progreso { background-color: var(--danger-orange); }
+.progress-bar-fill.completado { background-color: var(--success-green); }
+.progress-bar-fill.pendiente { background-color: #cbd5e1; }
+
+/* Grid de Tarjetas de Proyectos */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.project-progress-card {
+  background: var(--bg-surface);
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-#next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
+.project-progress-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.04);
 }
 
-#docs {
-  border-right: 1px solid var(--border);
+.project-card-header h4 { margin: 0; font-size: 1.2rem; color: var(--text-main); font-weight: 700; }
 
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
+.status-badge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-#next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
+.status-badge.en_progreso { background-color: #fff7ed; color: var(--danger-orange); border: 1px solid #fed7aa; }
+.status-badge.completado { background-color: #f0fdf4; color: var(--success-green); border: 1px solid #bbf7d0; }
+.status-badge.pendiente { background-color: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
 
-  .logo {
-    height: 18px;
-  }
+.project-description { color: var(--text-muted); font-size: 0.9rem; margin: 1rem 0; line-height: 1.5; }
+.project-timeline { display: flex; justify-content: space-between; color: var(--text-muted); margin-bottom: 1rem; border-top: 1px dashed var(--border-color); padding-top: 0.75rem; font-size: 0.85rem; }
 
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
+.project-card-footer label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
 
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
+/* Tabla de Empleados Modificada */
+.table-responsive {
+  background: var(--bg-surface);
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
 }
 
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
-}
-
-.ticks {
-  position: relative;
+.employee-table {
   width: 100%;
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
-
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
-  }
+  border-collapse: collapse;
+  text-align: left;
 }
+
+.employee-table th {
+  background-color: var(--brand-light);
+  padding: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  border-bottom: 2px solid var(--border-color);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.employee-table td {
+  padding: 1.1rem;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+  font-size: 0.95rem;
+}
+
+.employee-table tr:hover td {
+  background-color: #fafcf7;
+}
+
+.employee-name { font-weight: 700; color: var(--text-main); }
+
+.badge-role {
+  background-color: var(--brand-light);
+  color: var(--brand-dark);
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid #e2ebd3;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.status-pill.available { background-color: #f0fdf4; color: var(--success-green); }
+.status-pill.allocated { background-color: #fff7ed; color: var(--danger-orange); }
+
+/* Estados de Carga y Errores */
+.loading-state, .no-data-row { text-align: center; padding: 4rem; color: var(--text-muted); font-style: italic; }
+.error-card { background-color: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 1.5rem; border-radius: 10px; margin-top: 1rem; }
+
+.shadow { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.02), 0 2px 4px -1px rgb(0 0 0 / 0.02); }
