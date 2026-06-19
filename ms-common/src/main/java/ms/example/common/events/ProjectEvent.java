@@ -1,4 +1,4 @@
-package main.java.ms.example.common.events;
+package ms.example.common.events;
 
 import java.time.LocalDate;
 

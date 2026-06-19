@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-MsProyectosApplication<ms-proyectos>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "ms.example.ms_proyectos.MsProyectosApplication",
+            "projectName": "ms-proyectos",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
