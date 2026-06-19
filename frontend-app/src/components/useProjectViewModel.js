@@ -6,38 +6,51 @@ export function useProjectViewModel() {
   const [proyectos, setProyectos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // NUEVOS ESTADOS DE NAVEGACIÓN MVVM
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [commits, setCommits] = useState([]);
 
   const cargarProyectos = () => {
     setLoading(true);
     projectService.getProyectos()
-      .then((data) => {
-        setProyectos(data);
-        setError(null);
-      })
+      .then((data) => setProyectos(data))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
     cargarProyectos();
-    const interval = setInterval(cargarProyectos, 15000); // Polling cada 15s (Observer pattern simulado)
-    return () => clearInterval(interval);
   }, []);
 
-  // LÓGICA CORE DE MVVM: Transformar el estado crudo en métricas de avance
+  // Función para seleccionar un proyecto y disparar la carga de sus commits
+  const verDetalleProyecto = (id) => {
+    setSelectedProjectId(id);
+    if (id) {
+      projectService.getCommitsByProyecto(id).then((logs) => {
+        setCommits(logs);
+      });
+    } else {
+      setCommits([]);
+    }
+  };
+
   const total = proyectos.length;
   const completados = proyectos.filter(p => p.estado === 'COMPLETADO').length;
   const enProgreso = proyectos.filter(p => p.estado === 'EN_PROGRESO' || p.estado === 'ACTIVO').length;
   const pendientes = proyectos.filter(p => p.estado === 'PENDIENTE').length;
-  
-  // Porcentaje de progreso global de la compañía
   const porcentajeAvance = total > 0 ? Math.round((completados / total) * 100) : 0;
+
+  const proyectoSeleccionado = proyectos.find(p => p.id === selectedProjectId);
 
   return {
     proyectos,
     loading,
     error,
     metrics: { total, completados, enProgreso, pendientes, porcentajeAvance },
+    selectedProject: proyectoSeleccionado,
+    commits,
+    verDetalleProyecto,
     refresh: cargarProyectos
   };
 }

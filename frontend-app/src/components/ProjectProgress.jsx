@@ -1,10 +1,10 @@
 // src/components/ProjectProgress.jsx
 import React from 'react';
 
-export function ProjectProgress({ proyectos, metrics }) {
+export function ProjectProgress({ proyectos, metrics, onSelectProject }) {
   return (
     <div className="projects-section">
-      {/* Tarjetas de Métricas de Control */}
+      {/* Grid de Métricas */}
       <div className="metrics-grid">
         <div className="metric-card shadow">
           <h3>Total Proyectos</h3>
@@ -27,10 +27,14 @@ export function ProjectProgress({ proyectos, metrics }) {
         </div>
       </div>
 
-      {/* Lista / Grid de estado individual de Proyectos */}
+      {/* Grid de Tarjetas - Ahora actúan como Botones */}
       <div className="projects-grid">
         {proyectos.map((proy) => (
-          <div key={proy.id} className="project-progress-card shadow">
+          <div 
+            key={proy.id} 
+            className="project-progress-card clickable shadow"
+            onClick={() => onSelectProject(proy.id)} // Dispara la acción en el click
+          >
             <div className="project-card-header">
               <h4>{proy.nombre}</h4>
               <span className={`status-badge ${proy.estado.toLowerCase()}`}>
@@ -39,18 +43,11 @@ export function ProjectProgress({ proyectos, metrics }) {
             </div>
             <p className="project-description">{proy.descripcion}</p>
             <div className="project-timeline">
-              <small>📅 <strong>Inicio:</strong> {proy.fechaInicio}</small>
-              <small>🏁 <strong>Entrega:</strong> {proy.fechaFin}</small>
+              <small>📅 {proy.fechaInicio}</small>
+              <small>🏁 {proy.fechaFin}</small>
             </div>
-            {/* Barra de progreso visual por estado */}
             <div className="project-card-footer">
-              <label>Progreso estimado:</label>
-              <div className="progress-bar-container mini">
-                <div 
-                  className={`progress-bar-fill ${proy.estado.toLowerCase()}`} 
-                  style={{ width: proy.estado === 'COMPLETADO' ? '100%' : proy.estado === 'EN_PROGRESO' ? '60%' : '5%' }}
-                ></div>
-              </div>
+              <span className="action-hint">Ver historial de cambios →</span>
             </div>
           </div>
         ))}
