@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import ms.example.ms_proyectos.exception.ResourceNotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
