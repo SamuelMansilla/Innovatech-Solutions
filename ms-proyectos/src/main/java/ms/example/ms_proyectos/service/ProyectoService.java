@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class ProyectoService {
@@ -48,6 +50,17 @@ public class ProyectoService {
     @Transactional(readOnly = true)
     public List<Proyecto> buscarPorNombre(String nombre) {
         return proyectoRepository.findByNombreContainingIgnoreCase(nombre);
+    }
+
+    /**
+     * Obtiene proyectos con filtros opcionales y paginación.
+     */
+    public Page<Proyecto> obtenerConFiltros(String nombre,
+                                           EstadoProyecto estado,
+                                           LocalDate fechaInicioDesde,
+                                           LocalDate fechaFinHasta,
+                                           Pageable pageable) {
+        return proyectoRepository.search(nombre, estado, fechaInicioDesde, fechaFinHasta, pageable);
     }
 
     /**
@@ -141,6 +154,14 @@ public class ProyectoService {
             if (proyecto.getFechaInicio().isAfter(proyecto.getFechaFin())) {
                 throw new IllegalArgumentException("La fecha de inicio no puede ser posterior a la fecha de finalización.");
             }
+        }
+        validarFechas(proyecto);
+    }
+
+    private void validarFechas(Proyecto proyecto) {
+        if (proyecto.getFechaInicio() != null && proyecto.getFechaFin() != null
+                && proyecto.getFechaInicio().isAfter(proyecto.getFechaFin())) {
+            throw new IllegalArgumentException("La fecha de inicio no puede ser posterior a la fecha de fin");
         }
     }
 

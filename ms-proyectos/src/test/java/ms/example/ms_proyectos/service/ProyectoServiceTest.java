@@ -188,6 +188,30 @@ public class ProyectoServiceTest {
         assertEquals("ProjectUpdated", captor.getValue().getEventType());
     }
 
+    // 11. PRUEBA: Actualizar proyecto con fecha de inicio posterior a fecha de fin
+    @Test
+    public void actualizar_ConFechaInicioPosteriorAFechaFin_LanzaIllegalArgumentException() {
+        // Arrange
+        Proyecto proyectoExistente = new Proyecto();
+        proyectoExistente.setId(1L);
+        proyectoExistente.setNombre("Proyecto Alpha");
+        proyectoExistente.setEstado(EstadoProyecto.ACTIVO);
+        proyectoExistente.setFechaCreacion(LocalDate.of(2024, 1, 1));
+
+        Proyecto cambios = new Proyecto();
+        cambios.setNombre("Proyecto Beta");
+        cambios.setEstado(EstadoProyecto.ACTIVO);
+        cambios.setFechaInicio(LocalDate.of(2025, 12, 31));
+        cambios.setFechaFin(LocalDate.of(2025, 1, 1));
+        // Act & Assert
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            proyectoService.actualizar(1L, cambios);
+        });
+
+        assertEquals("La fecha de inicio no puede ser posterior a la fecha de fin", exception.getMessage());
+        verify(proyectoRepository, never()).save(any(Proyecto.class));
+    }
+
     // 11. PRUEBA: Actualizar proyecto inexistente
     @Test
     public void actualizar_ProyectoNoExiste_LanzaResourceNotFoundException() {

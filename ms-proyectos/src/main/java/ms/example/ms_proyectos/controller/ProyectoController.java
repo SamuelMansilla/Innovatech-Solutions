@@ -18,9 +18,11 @@ import ms.example.ms_proyectos.model.Proyecto;
 import ms.example.ms_proyectos.service.ProyectoService;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,6 +45,46 @@ public class ProyectoController {
     @Operation(summary = "Obtener todos los proyectos", description = "Retorna una lista con todos los proyectos registrados en el sistema.")
     @ApiResponse(responseCode = "200", description = "Lista de proyectos obtenida exitosamente")
     @GetMapping
+    public ResponseEntity<?> obtenerTodos(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) EstadoProyecto estado,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicioDesde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFinHasta,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "id,asc") String sort
+    ) {
+        String[] sortParts = sort.split(",");
+        String sortField = sortParts[0];
+        Sort.Direction direction = (sortParts.length > 1 && "desc".equalsIgnoreCase(sortParts[1])) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size), Sort.by(direction, sortField));
+
+        Page<Proyecto> pageResult = proyectoService.obtenerConFiltros(nombre, estado, fechaInicioDesde, fechaFinHasta, pageable);
+        Page<ProyectoResponse> respuesta = pageResult.map(ProyectoMapper::toResponse);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Total-Count", String.valueOf(pageResult.getTotalElements()));
+        headers.add("X-Total-Pages", String.valueOf(pageResult.getTotalPages()));
+        headers.add("X-Page-Number", String.valueOf(pageResult.getNumber()));
+        headers.add("X-Page-Size", String.valueOf(pageResult.getSize()));
+
+        StringBuilder link = new StringBuilder();
+        if (pageResult.hasPrevious()) {
+            link.append(String.format("</api/v1/proyectos?page=%d&size=%d&sort=%s>; rel=\"prev\",", page - 1, size, sort));
+        }
+        if (pageResult.hasNext()) {
+            link.append(String.format("</api/v1/proyectos?page=%d&size=%d&sort=%s>; rel=\"next\",", page + 1, size, sort));
+        }
+        if (link.length() > 0) {
+            headers.add(HttpHeaders.LINK, link.toString().replaceAll(",$", ""));
+        }
+
+        return ResponseEntity.ok().headers(headers).body(respuesta);
+    }
+
+    /**
+     * Compatibilidad: versión sin parámetros (usada por tests antiguos).
+     */
     public ResponseEntity<List<ProyectoResponse>> obtenerTodos() {
         List<Proyecto> proyectos = proyectoService.obtenerTodos();
         List<ProyectoResponse> respuesta = proyectos.stream()
