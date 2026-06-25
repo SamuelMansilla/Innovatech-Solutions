@@ -22,6 +22,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -151,7 +157,6 @@ public class ProyectoController {
             @PathVariable Long id,
             @Valid @RequestBody ProyectoRequest proyectoRequest) {
 
-        // Limpieza: El ProyectoService ya se encarga de buscar por ID y lanzar error si no existe.
         Proyecto entidad = ProyectoMapper.toEntity(proyectoRequest);
         Proyecto actualizado = proyectoService.actualizar(id, entidad);
 
@@ -165,7 +170,6 @@ public class ProyectoController {
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        // Limpieza: El ProyectoService ya lanza la excepción si el ID no existe.
         proyectoService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
