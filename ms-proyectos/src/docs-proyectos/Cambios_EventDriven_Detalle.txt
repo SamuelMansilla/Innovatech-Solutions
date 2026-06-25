@@ -1,0 +1,55 @@
+Informe: Cambios Event-Driven
+Fecha: 2026-06-05
+
+1) Objetivo
+- Documentar los cambios realizados para introducir comunicación basada en eventos (Kafka) entre `ms-proyectos` -> `ms-analitica` y la extracción de DTO común.
+
+2) Resumen de los cambios
+- Implementado productor Kafka en `ms-proyectos` para publicar eventos tras crear/actualizar proyectos.
+- Implementado listener en `ms-analitica` que consume eventos del topic `projects.events` y los guarda en un store en memoria para procesamiento posterior.
+- Añadidos tests unitarios y tests de integración (Testcontainers) para validar envío/consumo de mensajes.
+- Extraído `ProjectEvent` a un módulo compartido `ms-common` y actualizado imports para evitar duplicación.
+
+3) Archivos añadidos/actualizados (principales)
+- Productor: [ms-proyectos/src/main/java/ms/example/ms_proyectos/kafka/KafkaProducerService.java](ms-proyectos/src/main/java/ms/example/ms_proyectos/kafka/KafkaProducerService.java)
+- Publicación en servicio: [ms-proyectos/src/main/java/ms/example/ms_proyectos/service/ProyectoService.java](ms-proyectos/src/main/java/ms/example/ms_proyectos/service/ProyectoService.java)
+- DTO compartido: [ms-common/src/main/java/ms/example/common/events/ProjectEvent.java](ms-common/src/main/java/ms/example/common/events/ProjectEvent.java)
+- Listener: [ms-analitica/src/main/java/ms/example/ms_analitica/kafka/KafkaEventListener.java](ms-analitica/src/main/java/ms/example/ms_analitica/kafka/KafkaEventListener.java)
+- Store de eventos: [ms-analitica/src/main/java/ms/example/ms_analitica/kafka/AnalyticsEventStore.java](ms-analitica/src/main/java/ms/example/ms_analitica/kafka/AnalyticsEventStore.java)
+- Tests importantes:
+  - [ms-proyectos/src/test/java/ms/example/ms_proyectos/service/ProyectoServiceEventTest.java](ms-proyectos/src/test/java/ms/example/ms_proyectos/service/ProyectoServiceEventTest.java)
+  - [ms-proyectos/src/test/java/ms/example/ms_proyectos/kafka/ProyectoServiceKafkaIT.java](ms-proyectos/src/test/java/ms/example/ms_proyectos/kafka/ProyectoServiceKafkaIT.java)
+  - [ms-analitica/src/test/java/ms/example/ms_analitica/kafka/KafkaEventListenerTest.java](ms-analitica/src/test/java/ms/example/ms_analitica/kafka/KafkaEventListenerTest.java)
+  - [ms-analitica/src/test/java/ms/example/ms_analitica/kafka/KafkaListenerIT.java](ms-analitica/src/test/java/ms/example/ms_analitica/kafka/KafkaListenerIT.java)
+
+4) Comandos ejecutados localmente (Windows PowerShell)
+```powershell
+.\ms-proyectos\mvnw -f ms-common\pom.xml install
+.\ms-proyectos\mvnw -f ms-proyectos\pom.xml test
+.\ms-analitica\mvnw -f ms-analitica\pom.xml test
+.\ms-BFF\mvnw -f ms-BFF\pom.xml test
+.\ms-talento\mvnw -f ms-talento\pom.xml test
+```
+
+5) Resultados de pruebas
+- `ms-common`: instalado en el repositorio local (`.m2`).
+- `ms-proyectos`: tests unitarios e ITs (guardados para Docker) ejecutados y verdes tras ajustar dependencias.
+- `ms-analitica`: tests unitarios y de integración (guardados/IT con Testcontainers) ejecutados y verdes.
+- `ms-BFF` y `ms-talento`: tests unitarios ejecutados y verdes.
+
+6) Notas, problemas encontrados y acciones aplicadas
+- Problemas iniciales:
+  - Falta de `jackson-datatype-jsr310` versión en `ms-common/pom.xml` → fijada a `2.15.2`.
+  - Dependencia `kafka-clients` en scope `test` impedía compilar productor → movida a scope de compilación en `ms-proyectos/pom.xml`.
+  - Varias clases `ProjectEvent` duplicadas → centralizadas en `ms-common` y duplicados eliminados.
+  - Tests que necesitaban `KafkaTemplate` en contexto de pruebas -> se usaron `@MockBean` o se proveyó un bean de prueba donde fue necesario.
+
+7) Siguientes pasos recomendados
+- Añadir un POM agregador en la raíz para construir todo con un único `mvnw`.
+- Definir esquema formal del evento (`JSON Schema` o `Avro` + Schema Registry) y pruebas de compatibilidad.
+- Mejorar productor y consumidor (acks, retries, idempotence, DLQ, métricas).
+- Añadir `docker-compose` para Kafka + Schema Registry para desarrolladores.
+
+Contacto: Si quieres, hago el commit en una rama nueva con el informe y los cambios aplicados.
+
+*** Fin del informe
