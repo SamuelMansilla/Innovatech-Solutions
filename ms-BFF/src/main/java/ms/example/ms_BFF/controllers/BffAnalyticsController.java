@@ -3,6 +3,7 @@ package ms.example.ms_BFF.controllers;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import ms.example.ms_BFF.clients.AnaliticaClient;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/bff/analytics")
+@CrossOrigin(origins = "http://localhost:5173")
 public class BffAnalyticsController {
 
     private final AnaliticaClient analiticaClient;
