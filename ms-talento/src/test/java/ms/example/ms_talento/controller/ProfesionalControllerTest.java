@@ -64,4 +64,35 @@ public class ProfesionalControllerTest {
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.nombre").value("Samuel Backend"));
     }
+
+    @Test
+    public void deberiaRetornarListaVaciaCuandoNoHayProfesionales() throws Exception {
+        // Simular que el repositorio no encuentra registros
+        Mockito.when(repository.findAll()).thenReturn(java.util.Collections.emptyList());
+
+        mockMvc.perform(get("/api/v1/talento/profesionales"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(0)); // Verifica que la lista tenga tamaño 0
+    }
+
+    @Test
+    public void deberiaRegistrarProfesionalConCamposNulos() throws Exception {
+        // Simular que la BD acepta el registro aunque tenga campos null (comportamiento por defecto)
+        Profesional incompleto = new Profesional(null, null, null);
+        incompleto.setId(99L);
+
+        Mockito.when(repository.save(any(Profesional.class))).thenReturn(incompleto);
+
+        // JSON vacío sin propiedades
+        String jsonPeticion = "{}"; 
+
+        mockMvc.perform(post("/api/v1/talento/profesionales")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonPeticion))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(99L))
+                .andExpect(jsonPath("$.nombre").isEmpty())
+                .andExpect(jsonPath("$.rol").isEmpty())
+                .andExpect(jsonPath("$.horasDisponibles").isEmpty());
+    }
 }
