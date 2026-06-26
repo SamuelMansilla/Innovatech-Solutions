@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
  * Endpoints para operaciones CRUD y búsquedas.
  * El manejo de excepciones está centralizado en GlobalExceptionHandler.
  */
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/v1/proyectos")
 @Tag(name = "Gestión de Proyectos", description = "Endpoints para crear, buscar, actualizar y eliminar proyectos de Innovatech")
