@@ -3,7 +3,7 @@ package ms.example.ms_proyectos.service;
 import ms.example.ms_proyectos.model.Proyecto;
 import ms.example.ms_proyectos.model.EstadoProyecto;
 import ms.example.ms_proyectos.repository.ProyectoRepository;
-import ms.example.ms_proyectos.exception.ResourceNotFoundException; // Asegura importar tu excepción personalizada
+import ms.example.ms_proyectos.exception.ResourceNotFoundException; 
 import ms.example.common.events.ProjectEvent;
 import ms.example.ms_proyectos.kafka.KafkaProducerService;
 
@@ -22,39 +22,26 @@ public class ProyectoService {
     private final ProyectoRepository proyectoRepository;
     private final KafkaProducerService kafkaProducerService;
 
-    // Inyección de dependencias por constructor
     public ProyectoService(ProyectoRepository proyectoRepository, KafkaProducerService kafkaProducerService) {
         this.proyectoRepository = proyectoRepository;
         this.kafkaProducerService = kafkaProducerService;
     }
 
-    /**
-     * Obtiene todos los proyectos
-     */
     @Transactional(readOnly = true)
     public List<Proyecto> obtenerTodos() {
         return proyectoRepository.findAll();
     }
 
-    /**
-     * Obtiene un proyecto por su ID
-     */
     @Transactional(readOnly = true)
     public Optional<Proyecto> obtenerPorId(Long id) {
         return proyectoRepository.findById(id);
     }
 
-    /**
-     * Busca proyectos por coincidencia parcial de nombre
-     */
     @Transactional(readOnly = true)
     public List<Proyecto> buscarPorNombre(String nombre) {
         return proyectoRepository.findByNombreContainingIgnoreCase(nombre);
     }
 
-    /**
-     * Obtiene proyectos con filtros opcionales y paginación.
-     */
     public Page<Proyecto> obtenerConFiltros(String nombre,
                                            EstadoProyecto estado,
                                            LocalDate fechaInicioDesde,
@@ -63,17 +50,11 @@ public class ProyectoService {
         return proyectoRepository.search(nombre, estado, fechaInicioDesde, fechaFinHasta, pageable);
     }
 
-    /**
-     * Obtiene proyectos filtrados por estado
-     */
     @Transactional(readOnly = true)
     public List<Proyecto> obtenerPorEstado(EstadoProyecto estado) {
         return proyectoRepository.findByEstado(estado);
     }
 
-    /**
-     * Crea un nuevo proyecto, valida reglas de negocio y publica evento en Kafka
-     */
     @Transactional
     public Proyecto crear(Proyecto proyecto) {
         validarProyecto(proyecto);
@@ -87,15 +68,12 @@ public class ProyectoService {
         
         Proyecto saved = proyectoRepository.save(proyecto);
 
-        // Notificación Event-Driven
-        publicarEvento(saved, "ProjectCreated");
+        // COMENTADO TEMPORALMENTE PARA EVITAR ERROR 500 SI KAFKA NO ESTÁ ENCENDIDO
+        // publicarEvento(saved, "ProjectCreated");
 
         return saved;
     }
 
-    /**
-     * Actualiza un proyecto existente, verifica coherencia y notifica la actualización
-     */
     @Transactional
     public Proyecto actualizar(Long id, Proyecto proyectoActualizado) {
         validarProyecto(proyectoActualizado);
@@ -103,7 +81,6 @@ public class ProyectoService {
         Proyecto proyectoExistente = proyectoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado con ID: " + id));
 
-        // Validación extra: Si el nombre cambia, verificar que no esté duplicado con otro proyecto
         if (!proyectoExistente.getNombre().equalsIgnoreCase(proyectoActualizado.getNombre()) &&
             proyectoRepository.existsByNombreIgnoreCase(proyectoActualizado.getNombre())) {
             throw new IllegalArgumentException("El nuevo nombre ya está siendo usado por otro proyecto.");
@@ -118,15 +95,12 @@ public class ProyectoService {
 
         Proyecto saved = proyectoRepository.save(proyectoExistente);
 
-        // Notificación Event-Driven
-        publicarEvento(saved, "ProjectUpdated");
+        // COMENTADO TEMPORALMENTE PARA EVITAR ERROR 500 SI KAFKA NO ESTÁ ENCENDIDO
+        // publicarEvento(saved, "ProjectUpdated");
 
         return saved;
     }
 
-    /**
-     * Elimina un proyecto por ID
-     */
     @Transactional
     public void eliminar(Long id) {
         if (!proyectoRepository.existsById(id)) {
@@ -135,9 +109,6 @@ public class ProyectoService {
         proyectoRepository.deleteById(id);
     }
 
-    /**
-     * Centraliza las validaciones de negocio obligatorias y límites de auditoría (Sprint 1)
-     */
     private void validarProyecto(Proyecto proyecto) {
         if (proyecto.getNombre() == null || proyecto.getNombre().isBlank()) {
             throw new IllegalArgumentException("El nombre del proyecto es obligatorio");
@@ -149,7 +120,6 @@ public class ProyectoService {
             throw new IllegalArgumentException("El estado del proyecto es obligatorio");
         }
         
-        // Nueva Validación de Negocio Cruzada: Coherencia de Fechas
         if (proyecto.getFechaInicio() != null && proyecto.getFechaFin() != null) {
             if (proyecto.getFechaInicio().isAfter(proyecto.getFechaFin())) {
                 throw new IllegalArgumentException("La fecha de inicio no puede ser posterior a la fecha de finalización.");
@@ -165,9 +135,6 @@ public class ProyectoService {
         }
     }
 
-    /**
-     * Helper privado para encapsular la construcción y mapeo del evento de Kafka (Principio DRY)
-     */
     private void publicarEvento(Proyecto proyecto, String eventType) {
         ProjectEvent event = new ProjectEvent();
         event.setEventType(eventType);

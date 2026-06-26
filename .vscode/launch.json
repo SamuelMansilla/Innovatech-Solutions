@@ -2,6 +2,27 @@
     "configurations": [
         {
             "type": "java",
+            "name": "MsTalentoApplication",
+            "request": "launch",
+            "mainClass": "ms.example.ms_talento.MsTalentoApplication",
+            "projectName": "ms-talento"
+        },
+        {
+            "type": "java",
+            "name": "MsBffApplication",
+            "request": "launch",
+            "mainClass": "ms.example.ms_BFF.MsBffApplication",
+            "projectName": "ms-BFF"
+        },
+        {
+            "type": "java",
+            "name": "MsAnaliticaApplication",
+            "request": "launch",
+            "mainClass": "ms.example.ms_analitica.MsAnaliticaApplication",
+            "projectName": "ms-analitica"
+        },
+        {
+            "type": "java",
             "name": "Spring Boot-MsProyectosApplication<ms-proyectos>",
             "request": "launch",
             "cwd": "${workspaceFolder}",

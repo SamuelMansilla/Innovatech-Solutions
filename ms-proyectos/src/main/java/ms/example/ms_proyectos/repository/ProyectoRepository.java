@@ -15,42 +15,28 @@ import java.util.List;
 @Repository
 public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
 
-    /**
-     * Busca proyectos por nombre (búsqueda insensible a mayúsculas/minúsculas)
-     * @param nombre el nombre del proyecto
-     * @return lista de proyectos que coinciden
-     */
     List<Proyecto> findByNombreContainingIgnoreCase(String nombre);
 
-    /**
-     * Busca proyectos por estado
-     * @param estado el estado del proyecto (ej: ACTIVO, COMPLETADO, CANCELADO)
-     * @return lista de proyectos con ese estado
-     */
     List<Proyecto> findByEstado(EstadoProyecto estado);
 
-        Page<Proyecto> findByNombreContainingIgnoreCase(String nombre, Pageable pageable);
+    Page<Proyecto> findByNombreContainingIgnoreCase(String nombre, Pageable pageable);
 
-        Page<Proyecto> findByEstado(EstadoProyecto estado, Pageable pageable);
+    Page<Proyecto> findByEstado(EstadoProyecto estado, Pageable pageable);
 
-        Page<Proyecto> findByNombreContainingIgnoreCaseAndEstado(String nombre, EstadoProyecto estado, Pageable pageable);
+    Page<Proyecto> findByNombreContainingIgnoreCaseAndEstado(String nombre, EstadoProyecto estado, Pageable pageable);
 
-        @Query("SELECT p FROM Proyecto p " +
-            "WHERE (:nombre IS NULL OR LOWER(p.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))) " +
-            "AND (:estado IS NULL OR p.estado = :estado) " +
-            "AND (:fechaInicioDesde IS NULL OR p.fechaInicio >= :fechaInicioDesde) " +
-            "AND (:fechaFinHasta IS NULL OR p.fechaFin <= :fechaFinHasta)")
-        Page<Proyecto> search(
-            @Param("nombre") String nombre,
-            @Param("estado") EstadoProyecto estado,
-            @Param("fechaInicioDesde") LocalDate fechaInicioDesde,
-            @Param("fechaFinHasta") LocalDate fechaFinHasta,
-            Pageable pageable);
+    // SOLUCIÓN: Añadimos CAST explícitos para que PostgreSQL (Supabase) no confunda los null con "bytea" (binarios)
+    @Query("SELECT p FROM Proyecto p " +
+        "WHERE (:nombre IS NULL OR LOWER(p.nombre) LIKE LOWER(CONCAT('%', CAST(:nombre AS string), '%'))) " +
+        "AND (:estado IS NULL OR p.estado = :estado) " +
+        "AND (CAST(:fechaInicioDesde AS date) IS NULL OR p.fechaInicio >= :fechaInicioDesde) " +
+        "AND (CAST(:fechaFinHasta AS date) IS NULL OR p.fechaFin <= :fechaFinHasta)")
+    Page<Proyecto> search(
+        @Param("nombre") String nombre,
+        @Param("estado") EstadoProyecto estado,
+        @Param("fechaInicioDesde") LocalDate fechaInicioDesde,
+        @Param("fechaFinHasta") LocalDate fechaFinHasta,
+        Pageable pageable);
 
-    /**
-     * Verifica si existe un proyecto con el nombre especificado
-     * @param nombre el nombre del proyecto
-     * @return true si existe, false en caso contrario
-     */
     boolean existsByNombreIgnoreCase(String nombre);
 }
